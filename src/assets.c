@@ -85,6 +85,9 @@ static void loadImages(void) {
         { "digger-dig-01.png" },
         { "werewolf-walk-01.png" },
         { "cthulu-walk-01.png" },
+        { "cthulu-walk-02.png" },
+        { "cthulu-walk-03.png" },
+        { "cthulu-walk-04.png" },
         { "player-walk-01.png" },
         { "player-walk-02.png" },
         { "player-walk-03.png" },
@@ -153,7 +156,7 @@ static void loadSounds(void) {
     const int SOUND_VOLUME = 12;
 
     SoundDef defs[] = {
-//        { "win.wav", SOUND_VOLUME * 2 },
+//        { "bell.wav", SOUND_VOLUME }
     };
 
     soundCount = sizeof(defs) / sizeof(SoundDef);

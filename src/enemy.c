@@ -6,6 +6,7 @@
 #include "hud.h"
 
 typedef enum {
+	TYPE_CTHULU,
 	TYPE_DIGGER,
 	TYPE_WEREWOLF,
 } EnemyType;
@@ -20,7 +21,7 @@ typedef struct {
 #define WALK_ANIMS 4	//We play each frame twice.
 Enemy enemies[MAX_ENEMY];
 
-const double ENEMY_SPEED = 0.3;
+const double ENEMY_SPEED = 0.015;
 
 bool onScreen(Coord coord, double threshold) {
 	return inBounds(coord, makeRect(
@@ -37,8 +38,8 @@ void enemyGameFrame(void) {
 
 		//Move around.
 		Coord homeStep = getStep(enemies[i].coord, pos, ENEMY_SPEED, true);
-		enemies[i].coord.x += homeStep.x;
-		enemies[i].coord.y += homeStep.y;
+		enemies[i].coord.x -= homeStep.x;
+		enemies[i].coord.y -= homeStep.y;
 	}
 }
 
@@ -62,14 +63,18 @@ void enemyRenderFrame(void){
 		if(enemies[i].coord.x == 0) continue;
 
 		Sprite sprite;
+		SDL_RendererFlip flip = enemies[i].coord.x > pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 
 		//Ugh... Time constraints!
 		switch(enemies[i].type) {
 			case TYPE_WEREWOLF:
-				sprite = makeSimpleSprite("werewolf-walk-01.png");
+				sprite = makeFlippedSprite("werewolf-walk-01.png", flip);
 				break;
 			case TYPE_DIGGER:
-				sprite = makeSimpleSprite("digger-dig-01.png");
+				sprite = makeFlippedSprite("digger-dig-01.png", flip);
+				break;
+			case TYPE_CTHULU:
+				sprite = makeFlippedSprite("cthulu-walk-01.png", flip);
 				break;
 		}
 
@@ -81,18 +86,16 @@ void initEnemy(void) {
 	//Make the enemies
 	for(int i=0; i < 6; i++) {
 		Coord c = makeCoord(
-			randomMq(75, 320),
-			randomMq(75, 240)
+			randomMq(0, screenBounds.x),
+			randomMq(0, screenBounds.y)
 		);
 
 		Enemy enemy = {
 			c,
 			0,
-			(EnemyType)randomMq(0, sizeof(EnemyType))
+			randomMq(0, 2)
 		};
 
 		enemies[i] = enemy;
 	}
-
-	memset(enemies, 0, sizeof(enemies));
 }

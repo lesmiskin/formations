@@ -10,7 +10,7 @@
 
 double MOVE_INC = 0.5;
 
-#define WALK_FRAMES 8
+#define WALK_FRAMES 4
 
 Coord pos = { 25, 50 };
 int walkInc = 1;
@@ -28,7 +28,7 @@ void playerRenderFrame(void) {
 	SDL_RendererFlip flip = playerDir ? SDL_FLIP_NONE : SDL_FLIP_HORIZONTAL;
 
 	char *frameFile[25];
-	sprintf(frameFile, "player-walk-%02d.png", walkInc);
+	sprintf(frameFile, "cthulu-walk-%02d.png", walkInc);
 	Sprite player = makeFlippedSprite(frameFile, flip);
 
 	SDL_SetTextureColorMod(player.texture, 164, 164, 192);

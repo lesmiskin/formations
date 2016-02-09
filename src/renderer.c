@@ -5,9 +5,9 @@
 SDL_Texture *renderBuffer;
 SDL_Renderer *renderer = NULL;
 static int renderScale;
-static const int BASE_SCALE_WIDTH = 320;
-static const int BASE_SCALE_HEIGHT = 240;
-static const double PIXEL_SCALE = 2;				//pixel doubling for assets.
+static const int BASE_SCALE_WIDTH = 160;
+static const int BASE_SCALE_HEIGHT = 120;
+static const double PIXEL_SCALE = 1;				//pixel doubling for assets.
 Coord pixelGrid;					    			//helps aligning things to the tiled background.
 Coord screenBounds;
 
@@ -40,8 +40,8 @@ void drawSpriteFull(Sprite sprite, Coord origin, double scale, double angle) {
     assert(sprite.texture != NULL);
 
     //Offsets should be relative to image pixel metrics, not screen metrics.
-    int offsetX = sprite.offset.x * renderScale;
-    int offsetY = sprite.offset.y * renderScale;
+    int offsetX = sprite.offset.x;
+    int offsetY = sprite.offset.y;
 
     //NB: We adjust the offset to ensure all sprites are drawn centered at their origin points
     offsetX -= (sprite.size.x / 2);
@@ -49,10 +49,10 @@ void drawSpriteFull(Sprite sprite, Coord origin, double scale, double angle) {
 
     //Configure target location output sprite_t size, adjusting the latter for the constant sprite_t scaling factor.
     SDL_Rect destination  = {
-            (origin.x + offsetX),
-            (origin.y + offsetY),
-            sprite.size.x * scale,
-            sprite.size.y * scale
+        (origin.x + offsetX),
+        (origin.y + offsetY),
+        sprite.size.x,
+        sprite.size.y
     };
 
     //Rotation
