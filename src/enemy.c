@@ -18,7 +18,7 @@ typedef struct {
 } Enemy;
 
 #define MAX_ENEMY 12
-#define WALK_ANIMS 4	//We play each frame twice.
+#define WALK_FRAMES 4
 Enemy enemies[MAX_ENEMY];
 
 const double ENEMY_SPEED = 0.015;
@@ -52,7 +52,7 @@ void enemyAnimateFrame(void) {
 		if(enemies[i].animInc < 4) {
 			enemies[i].animInc++;
 		}else{
-			enemies[i].animInc = 0;
+			enemies[i].animInc = 1;
 		}
 	}
 }
@@ -73,9 +73,12 @@ void enemyRenderFrame(void){
 			case TYPE_DIGGER:
 				sprite = makeFlippedSprite("digger-dig-01.png", flip);
 				break;
-			case TYPE_CTHULU:
-				sprite = makeFlippedSprite("cthulu-walk-01.png", flip);
+			case TYPE_CTHULU: {
+				char *frameFile[25];
+				sprintf(frameFile, "cthulu-walk-%02d.png", enemies[i].animInc);
+				sprite = makeFlippedSprite(frameFile, flip);
 				break;
+			}
 		}
 
 		drawSprite(sprite, enemies[i].coord);
@@ -92,7 +95,7 @@ void initEnemy(void) {
 
 		Enemy enemy = {
 			c,
-			0,
+			1,
 			randomMq(0, 2)
 		};
 

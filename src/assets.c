@@ -97,6 +97,11 @@ static void loadImages(void) {
         { "player-walk-07.png" },
         { "player-walk-08.png" },
 
+        { "player-walk-sword-01.png" },
+        { "player-walk-sword-02.png" },
+        { "player-walk-sword-03.png" },
+        { "player-walk-sword-04.png" },
+
         { "font-00.png" },
         { "font-01.png" },
         { "font-02.png" },
