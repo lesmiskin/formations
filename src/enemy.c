@@ -20,6 +20,8 @@ typedef struct {
 #define MAX_ENEMY 12
 #define WALK_FRAMES 4
 Enemy enemies[MAX_ENEMY];
+long lastIdleTime;
+const int IDLE_HZ = 1000 / 2;
 
 const double ENEMY_SPEED = 0.015;
 
@@ -44,6 +46,8 @@ void enemyGameFrame(void) {
 }
 
 void enemyAnimateFrame(void) {
+	if(!timer(&lastIdleTime, IDLE_HZ)) return;
+
 	//Animate the enemies
 	for(int i=0; i < MAX_ENEMY; i++) {
 		if(enemies[i].coord.x == 0) continue;
@@ -67,12 +71,18 @@ void enemyRenderFrame(void){
 
 		//Ugh... Time constraints!
 		switch(enemies[i].type) {
-			case TYPE_WEREWOLF:
-				sprite = makeFlippedSprite("werewolf-walk-01.png", flip);
+			case TYPE_WEREWOLF: {
+				char *frameFile[25];
+				sprintf(frameFile, "werewolf-walk-%02d.png", enemies[i].animInc);
+				sprite = makeFlippedSprite(frameFile, flip);
 				break;
-			case TYPE_DIGGER:
-				sprite = makeFlippedSprite("digger-dig-01.png", flip);
+			}
+			case TYPE_DIGGER: {
+				char *frameFile[25];
+				sprintf(frameFile, "digger-walk-%02d.png", enemies[i].animInc);
+				sprite = makeFlippedSprite(frameFile, flip);
 				break;
+			}
 			case TYPE_CTHULU: {
 				char *frameFile[25];
 				sprintf(frameFile, "cthulu-walk-%02d.png", enemies[i].animInc);

@@ -31,7 +31,7 @@ void playerRenderFrame(void) {
 	sprintf(frameFile, "player-walk-sword-%02d.png", walkInc);
 	Sprite player = makeFlippedSprite(frameFile, flip);
 
-	SDL_SetTextureColorMod(player.texture, 164, 164, 192);
+//	SDL_SetTextureColorMod(player.texture, 164, 164, 192);
 
 	drawSprite(player, pos);
 }

@@ -12,7 +12,7 @@
 #include "enemy.h"
 
 static const char *GAME_TITLE = "Graveyard Alpha 0.1";
-const int ANIMATION_HZ = 1000 / 3;		//12fps
+const int ANIMATION_HZ = 1000 / 4;		//12fps
 const int RENDER_HZ = 1000 / 60;		//60fps
 const int GAME_HZ = 1000 / 60;			//60fps
 
@@ -97,9 +97,9 @@ int main()  {
             processSystemCommands();
         }
 
+        enemyAnimateFrame();
 		//Animation frame
 		if(timer(&lastAnimFrameTime, ANIMATION_HZ)) {
-            enemyAnimateFrame();
 			sceneAnimateFrame();
             playerAnimateFrame();
 		}

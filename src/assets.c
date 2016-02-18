@@ -83,7 +83,16 @@ static void loadImages(void) {
         { "grass.png" },
 
         { "digger-dig-01.png" },
+        { "digger-walk-01.png" },
+        { "digger-walk-02.png" },
+        { "digger-walk-03.png" },
+        { "digger-walk-04.png" },
+
         { "werewolf-walk-01.png" },
+        { "werewolf-walk-02.png" },
+        { "werewolf-walk-03.png" },
+        { "werewolf-walk-04.png" },
+
         { "cthulu-walk-01.png" },
         { "cthulu-walk-02.png" },
         { "cthulu-walk-03.png" },
