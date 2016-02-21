@@ -9,6 +9,7 @@ typedef enum {
 	TYPE_CTHULU,
 	TYPE_DIGGER,
 	TYPE_WEREWOLF,
+	TYPE_DRACULA,
 } EnemyType;
 
 typedef struct {
@@ -69,28 +70,30 @@ void enemyRenderFrame(void){
 		Sprite sprite;
 		SDL_RendererFlip flip = enemies[i].coord.x > pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 
+		char *frameFile[25];
+
 		//Ugh... Time constraints!
 		switch(enemies[i].type) {
 			case TYPE_WEREWOLF: {
-				char *frameFile[25];
-				sprintf(frameFile, "werewolf-walk-%02d.png", enemies[i].animInc);
-				sprite = makeFlippedSprite(frameFile, flip);
+				strcpy(frameFile, "werewolf-walk-%02d.png");
 				break;
 			}
 			case TYPE_DIGGER: {
-				char *frameFile[25];
-				sprintf(frameFile, "digger-walk-%02d.png", enemies[i].animInc);
-				sprite = makeFlippedSprite(frameFile, flip);
+				strcpy(frameFile, "digger-walk-%02d.png");
 				break;
 			}
 			case TYPE_CTHULU: {
-				char *frameFile[25];
-				sprintf(frameFile, "cthulu-walk-%02d.png", enemies[i].animInc);
-				sprite = makeFlippedSprite(frameFile, flip);
+				strcpy(frameFile, "cthulu-walk-%02d.png");
+				break;
+			}
+			case TYPE_DRACULA: {
+				strcpy(frameFile, "dracula-walk-%02d.png");
 				break;
 			}
 		}
 
+		sprintf(frameFile, frameFile, enemies[i].animInc);
+		sprite = makeFlippedSprite(frameFile, flip);
 		drawSprite(sprite, enemies[i].coord);
 	}
 }
@@ -106,7 +109,7 @@ void initEnemy(void) {
 		Enemy enemy = {
 			c,
 			1,
-			randomMq(0, 2)
+			randomMq(0, sizeof(EnemyType)-1)
 		};
 
 		enemies[i] = enemy;
