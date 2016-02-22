@@ -18,7 +18,7 @@ typedef struct {
 	EnemyType type;
 } Enemy;
 
-#define MAX_ENEMY 12
+#define MAX_ENEMY 5
 #define WALK_FRAMES 4
 Enemy enemies[MAX_ENEMY];
 long lastIdleTime;
@@ -100,7 +100,7 @@ void enemyRenderFrame(void){
 
 void initEnemy(void) {
 	//Make the enemies
-	for(int i=0; i < 6; i++) {
+	for(int i=0; i < MAX_ENEMY; i++) {
 		Coord c = makeCoord(
 			randomMq(0, screenBounds.x),
 			randomMq(0, screenBounds.y)
@@ -109,7 +109,7 @@ void initEnemy(void) {
 		Enemy enemy = {
 			c,
 			1,
-			randomMq(0, sizeof(EnemyType)-1)
+			randomMq(0, TYPE_DRACULA)
 		};
 
 		enemies[i] = enemy;

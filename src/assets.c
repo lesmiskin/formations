@@ -82,7 +82,13 @@ static void loadImages(void) {
         { "water.png" },
         { "grass.png" },
 
-        { "digger-dig-01.png" },
+        { "coffin-open.png" },
+        { "coffin-closed.png" },
+        { "grave.png" },
+        { "gravestone.png" },
+        { "gravestone-cross.png" },
+        { "gravestone-cross-grass.png" },
+
         { "digger-walk-01.png" },
         { "digger-walk-02.png" },
         { "digger-walk-03.png" },
@@ -102,6 +108,7 @@ static void loadImages(void) {
         { "cthulu-walk-02.png" },
         { "cthulu-walk-03.png" },
         { "cthulu-walk-04.png" },
+
         { "player-walk-01.png" },
         { "player-walk-02.png" },
         { "player-walk-03.png" },

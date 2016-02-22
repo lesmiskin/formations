@@ -3,6 +3,8 @@
 #include "common.h"
 #include "input.h"
 #include "enemy.h"
+#include "player.h"
+#include "scene.h"
 
 #define MAX_COMMANDS 20
 
@@ -22,21 +24,27 @@ void pollInput(void) {
     //Respond to SDL events, or key presses (not holds)
     SDL_Event event;
     while(SDL_PollEvent(&event) != 0) {
-        switch(event.type) {
-            case SDL_QUIT:
-                commands[CMD_QUIT] = true;
-                break;
-            //Presses
-            case SDL_KEYDOWN: {
-                //Ignore held keys.
-                if(event.key.repeat) break;
+		switch (event.type) {
+			case SDL_QUIT:
+				commands[CMD_QUIT] = true;
+				break;
+				//Presses
+			case SDL_KEYDOWN: {
+				//Ignore held keys.
+				if (event.key.repeat) break;
 
-                SDL_Keycode keypress = event.key.keysym.scancode;
+				SDL_Keycode keypress = event.key.keysym.scancode;
 
 				//Exit to title.
-				if(keypress == SDL_SCANCODE_ESCAPE)
+				if (keypress == SDL_SCANCODE_ESCAPE)
 					commands[CMD_QUIT] = true;
+
+				if (keypress == SDL_SCANCODE_F5) {
+					initScene();
+					initEnemy();
+					initPlayer();
 				}
+			}
 		}
 	}
 
