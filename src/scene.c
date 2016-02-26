@@ -5,6 +5,7 @@
 #include "hud.h"
 
 #include "enemy.h"
+#include "player.h"
 
 #define MAX_PROPS 4
 
@@ -17,7 +18,8 @@ typedef enum {
 
 typedef struct {
 	PropType type;
-	Coord origin;
+	Coord coord;
+	bool coffinOpened;
 } Prop;
 
 const int TILE_SIZE = 8;
@@ -60,16 +62,35 @@ static void makeGroundTexture() {
 void sceneAnimateFrame() {
 }
 
+void sceneGameFrame() {
+	for(int i=0; i < MAX_PROPS; i++) {
+		if(	props[i].type == PROP_COFFIN &&
+			!props[i].coffinOpened &&
+			inBounds(pos, makeSquareBounds(props[i].coord, 24))
+		){
+			//50% chance a vampire will come out.
+			if(chance(66)) {
+				spawnEnemy(ENEMY_DRACULA, props[i].coord);
+			}
+			props[i].coffinOpened = true;
+		}
+	}
+}
+
 void sceneRenderFrame() {
 	drawSprite(ground, makeCoord(320, 240));
 
 	for(int i=0; i < MAX_PROPS; i++) {
 		Sprite sprite;
-		char *frameFile[25];
+		char frameFile[25];
 
 		switch(props[i].type) {
 			case PROP_COFFIN:
-				strcpy(frameFile, "coffin-closed.png");
+				if(props[i].coffinOpened) {
+					strcpy(frameFile, "coffin-open.png");
+				}else{
+					strcpy(frameFile, "coffin-closed.png");
+				}
 				break;
 //			case PROP_GRAVE:
 //				strcpy(frameFile, "grave.png");
@@ -89,7 +110,7 @@ void sceneRenderFrame() {
 
 		sprite = makeSprite(tex, zeroCoord(), SDL_FLIP_NONE);
 
-		drawSprite(sprite, props[i].origin);
+		drawSprite(sprite, props[i].coord);
 	}
 }
 
@@ -103,7 +124,8 @@ void initScene() {
 			makeCoord(
 				randomMq(0, screenBounds.x),
 				randomMq(0, screenBounds.y)
-			)
+			),
+			false
 		};
 		props[i] = p;
 	}

@@ -43,7 +43,7 @@ void drawSpriteFull(Sprite sprite, Coord origin, double scale, double angle) {
     int offsetX = sprite.offset.x;
     int offsetY = sprite.offset.y;
 
-    //NB: We adjust the offset to ensure all sprites are drawn centered at their origin points
+    //NB: We adjust the offset to ensure all sprites are drawn centered at their coord points
     offsetX -= (sprite.size.x / 2);
     offsetY -= (sprite.size.y / 2);
 

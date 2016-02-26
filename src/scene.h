@@ -8,6 +8,7 @@
 
 extern void sceneRenderFrame(void);
 extern void sceneAnimateFrame(void);
+extern void sceneGameFrame();
 extern void initScene();
 
 #endif

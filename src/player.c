@@ -27,7 +27,7 @@ void playerRenderFrame(void) {
 	//Draw player.
 	SDL_RendererFlip flip = playerDir ? SDL_FLIP_NONE : SDL_FLIP_HORIZONTAL;
 
-	char *frameFile[25];
+	char frameFile[25];
 	sprintf(frameFile, "player-walk-sword-%02d.png", walkInc);
 	Sprite player = makeFlippedSprite(frameFile, flip);
 

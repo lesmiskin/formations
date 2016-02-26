@@ -5,26 +5,21 @@
 #include "time.h"
 #include "hud.h"
 
-typedef enum {
-	TYPE_CTHULU,
-	TYPE_DIGGER,
-	TYPE_WEREWOLF,
-	TYPE_DRACULA,
-} EnemyType;
-
 typedef struct {
 	Coord coord;
 	int animInc;
 	EnemyType type;
 } Enemy;
 
-#define MAX_ENEMY 5
+#define MAX_ENEMY 50
 #define WALK_FRAMES 4
 Enemy enemies[MAX_ENEMY];
 long lastIdleTime;
-const int IDLE_HZ = 1000 / 2;
+int enemyCount = 0;
+const int IDLE_HZ = 1000 / 5;
+const int INITIAL_ENEMIES = 5;
 
-const double ENEMY_SPEED = 0.015;
+const double ENEMY_SPEED = 1;
 
 bool onScreen(Coord coord, double threshold) {
 	return inBounds(coord, makeRect(
@@ -38,11 +33,6 @@ bool onScreen(Coord coord, double threshold) {
 void enemyGameFrame(void) {
 	for(int i=0; i < MAX_ENEMY; i++) {
 		if(enemies[i].coord.x == 0) continue;
-
-		//Move around.
-		Coord homeStep = getStep(enemies[i].coord, pos, ENEMY_SPEED, true);
-		enemies[i].coord.x -= homeStep.x;
-		enemies[i].coord.y -= homeStep.y;
 	}
 }
 
@@ -52,6 +42,11 @@ void enemyAnimateFrame(void) {
 	//Animate the enemies
 	for(int i=0; i < MAX_ENEMY; i++) {
 		if(enemies[i].coord.x == 0) continue;
+
+		//Slight hack - we want to move the enemies in sync with their animation.
+		Coord homeStep = getStep(enemies[i].coord, pos, ENEMY_SPEED, true);
+		enemies[i].coord.x -= homeStep.x;
+		enemies[i].coord.y -= homeStep.y;
 
 		//Increment animations.
 		if(enemies[i].animInc < 4) {
@@ -70,23 +65,23 @@ void enemyRenderFrame(void){
 		Sprite sprite;
 		SDL_RendererFlip flip = enemies[i].coord.x > pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 
-		char *frameFile[25];
+		char frameFile[25];
 
 		//Ugh... Time constraints!
 		switch(enemies[i].type) {
-			case TYPE_WEREWOLF: {
+			case ENEMY_WOLFMAN: {
 				strcpy(frameFile, "werewolf-walk-%02d.png");
 				break;
 			}
-			case TYPE_DIGGER: {
+			case ENEMY_DIGGER: {
 				strcpy(frameFile, "digger-walk-%02d.png");
 				break;
 			}
-			case TYPE_CTHULU: {
+			case ENEMY_CTHULU: {
 				strcpy(frameFile, "cthulu-walk-%02d.png");
 				break;
 			}
-			case TYPE_DRACULA: {
+			case ENEMY_DRACULA: {
 				strcpy(frameFile, "dracula-walk-%02d.png");
 				break;
 			}
@@ -98,20 +93,26 @@ void enemyRenderFrame(void){
 	}
 }
 
+void spawnEnemy(EnemyType type, Coord coord) {
+	if(enemyCount == MAX_ENEMY) return;
+
+	Enemy e = {
+		coord,
+		1,
+		type
+	};
+	enemies[enemyCount++] = e;
+}
+
 void initEnemy(void) {
 	//Make the enemies
-	for(int i=0; i < MAX_ENEMY; i++) {
-		Coord c = makeCoord(
-			randomMq(0, screenBounds.x),
-			randomMq(0, screenBounds.y)
+	for(int i=0; i < INITIAL_ENEMIES; i++) {
+		spawnEnemy(
+			(EnemyType)randomMq(0, ENEMY_DRACULA),
+			makeCoord(
+				randomMq(0, screenBounds.x),
+				randomMq(0, screenBounds.y)
+			)
 		);
-
-		Enemy enemy = {
-			c,
-			1,
-			randomMq(0, TYPE_DRACULA)
-		};
-
-		enemies[i] = enemy;
 	}
 }

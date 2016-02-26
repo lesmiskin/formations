@@ -11,6 +11,18 @@
 #include "hud.h"
 #include "enemy.h"
 
+// TODO: Coffins open and reveal Dracula (twice as fast)
+
+// TODO: Monsters to move 2 pixels per frame, consistent with animation (Quake-like).
+// TODO: Player to be smooth, and have Commander Keen-like momentum.
+
+// TODO: Light and heavy 'whack' (heavy pushes back, 4 lights and they will reel).
+// TODO: Shield bash.
+
+// TODO: Fire blast (circle - Catacomb).
+// TODO: Fire column (straight ahead - Catacomb).
+// TODO: Health potion.
+
 static const char *GAME_TITLE = "Graveyard Alpha 0.1";
 const int ANIMATION_HZ = 1000 / 4;		//12fps
 const int RENDER_HZ = 1000 / 60;		//60fps
@@ -91,13 +103,16 @@ int main()  {
         //Game frame
         if(timer(&lastGameFrameTime, GAME_HZ)) {
             pollInput();
+			sceneGameFrame();
             playerGameFrame();
             enemyGameFrame();
 			hudGameFrame();
             processSystemCommands();
         }
 
-        enemyAnimateFrame();
+        //Self-managing animations
+		enemyAnimateFrame();
+
 		//Animation frame
 		if(timer(&lastAnimFrameTime, ANIMATION_HZ)) {
 			sceneAnimateFrame();
