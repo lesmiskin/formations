@@ -44,13 +44,20 @@ void enemyGameFrame(void) {
 		Coord target = deriveCoord(enemies[i].coord, -homeStep.x, -homeStep.y);
 		bool skipMove = false;
 
-		for(int j=0; j < MAX_ENEMY; j++) {
-			if(enemies[i].id == enemies[j].id) continue;
+		//Loop through all enemies (plus player), and see if we would collide.
+		for(int j=-1; j < MAX_ENEMY; j++) {
+			/* Hack: Swap out player pos if -1, then go onto the enemies. This
+			 * lets us easily use the same detection code for both character
+			 * types, although this could also be a method...) */
+			Coord compare = j == -1 ? pos : enemies[j].coord;
+
+			//Don't collide with ourselves :p
+			if(j > -1 && enemies[i].id == enemies[j].id) continue;
 
 			//If our new target would put us next to an enemy, stop moving.
-			if(inBounds(target, makeSquareBounds(enemies[j].coord, 15))) {
+			if(inBounds(target, makeSquareBounds(compare, 15))) {
 				double distI = calcDistance(enemies[i].coord, pos);
-				double distJ = calcDistance(enemies[j].coord, pos);
+				double distJ = calcDistance(compare, pos);
 
 				//If we're further away than the colliding enemy, stop him.
 				if(distI > distJ) {
