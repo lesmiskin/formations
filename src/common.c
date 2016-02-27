@@ -15,6 +15,12 @@ void changeMode(GameMode newMode) {
 	currentMode = newMode;
 }
 
+double calcDistance(Coord a, Coord b) {
+    double xDist = a.x - b.x;
+    double yDist = a.y - b.y;
+    return sqrt(pow(xDist, 2) + pow(yDist, 2));
+}
+
 long ticsToMilliseconds(long tics) {
     //we want the duration version of the platform-independent seconds, so we / 1000.
     long platformAgnosticMilliseconds = CLOCKS_PER_SEC / 1000;

@@ -9,17 +9,23 @@ typedef struct {
 	Coord coord;
 	int animInc;
 	EnemyType type;
+	int id;
 } Enemy;
+
+//Attack function for player: Single animation, hits in direction of facing, enemy health reduces.
+//Enemies vanish with health is zero.
+//Enemies attack player with single frame, player health reduces.
+//Player vanishes when health is zero.
+//Enemy collision detection.
 
 #define MAX_ENEMY 50
 #define WALK_FRAMES 4
 Enemy enemies[MAX_ENEMY];
 long lastIdleTime;
 int enemyCount = 0;
-const int IDLE_HZ = 1000 / 5;
 const int INITIAL_ENEMIES = 5;
-
-const double ENEMY_SPEED = 1;
+const int IDLE_HZ = 1000 / 4;
+const double ENEMY_SPEED = 0.075;
 
 bool onScreen(Coord coord, double threshold) {
 	return inBounds(coord, makeRect(
@@ -33,6 +39,30 @@ bool onScreen(Coord coord, double threshold) {
 void enemyGameFrame(void) {
 	for(int i=0; i < MAX_ENEMY; i++) {
 		if(enemies[i].coord.x == 0) continue;
+
+		Coord homeStep = getStep(enemies[i].coord, pos, ENEMY_SPEED, true);
+		Coord target = deriveCoord(enemies[i].coord, -homeStep.x, -homeStep.y);
+		bool skipMove = false;
+
+		for(int j=0; j < MAX_ENEMY; j++) {
+			if(enemies[i].id == enemies[j].id) continue;
+
+			//If our new target would put us next to an enemy, stop moving.
+			if(inBounds(target, makeSquareBounds(enemies[j].coord, 15))) {
+				double distI = calcDistance(enemies[i].coord, pos);
+				double distJ = calcDistance(enemies[j].coord, pos);
+
+				//If we're further away than the colliding enemy, stop him.
+				if(distI > distJ) {
+					skipMove = true;
+					break;
+				}
+			}
+		}
+
+		if(!skipMove) {
+			enemies[i].coord = target;
+		}
 	}
 }
 
@@ -44,9 +74,6 @@ void enemyAnimateFrame(void) {
 		if(enemies[i].coord.x == 0) continue;
 
 		//Slight hack - we want to move the enemies in sync with their animation.
-		Coord homeStep = getStep(enemies[i].coord, pos, ENEMY_SPEED, true);
-		enemies[i].coord.x -= homeStep.x;
-		enemies[i].coord.y -= homeStep.y;
 
 		//Increment animations.
 		if(enemies[i].animInc < 4) {
@@ -99,7 +126,8 @@ void spawnEnemy(EnemyType type, Coord coord) {
 	Enemy e = {
 		coord,
 		1,
-		type
+		type,
+		enemyCount
 	};
 	enemies[enemyCount++] = e;
 }
