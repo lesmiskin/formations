@@ -215,6 +215,7 @@ void enemyRenderFrame(void){
 
 		Sprite sprite;
 		SDL_RendererFlip flip = SDL_FLIP_NONE;
+		bool isUp = false;
 
 		if(enemies[i].isRoaming) {
 			//Flip in the direction we're roaming (default case takes care of left-facing)
@@ -225,9 +226,13 @@ void enemyRenderFrame(void){
 				case DIR_NORTHWEST:
 					flip = SDL_FLIP_HORIZONTAL;
 					break;
+				case DIR_NORTH:
+					isUp = true;
+					break;
 			}
 		}else{
 			flip = enemies[i].coord.x > pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+			isUp = enemies[i].coord.y > pos.y;
 		}
 
 		char frameFile[25];
@@ -247,7 +252,11 @@ void enemyRenderFrame(void){
 				break;
 			}
 			case ENEMY_DRACULA: {
-				strcpy(frameFile, "dracula-walk-%02d.png");
+				if(isUp) {
+					strcpy(frameFile, "dracula-walk-up-%02d.png");
+				}else{
+					strcpy(frameFile, "dracula-walk-%02d.png");
+				}
 				break;
 			}
 		}

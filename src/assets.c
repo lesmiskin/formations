@@ -98,6 +98,10 @@ static void loadImages(void) {
         { "dracula-walk-02.png" },
         { "dracula-walk-03.png" },
         { "dracula-walk-04.png" },
+        { "dracula-walk-up-01.png" },
+        { "dracula-walk-up-02.png" },
+        { "dracula-walk-up-03.png" },
+        { "dracula-walk-up-04.png" },
 
         { "werewolf-walk-01.png" },
         { "werewolf-walk-02.png" },
