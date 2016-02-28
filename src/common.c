@@ -146,6 +146,12 @@ Rect makeSquareBounds(Coord origin, double size) {
     return makeBounds(origin, size, size);
 }
 
+Coord mergeCoord(Coord original, Coord derive) {
+    original.x += derive.x;
+    original.y += derive.y;
+    return original;
+}
+
 Coord deriveCoord(Coord original, double xOffset, double yOffset) {
     original.x += xOffset;
     original.y += yOffset;

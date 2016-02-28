@@ -5,11 +5,24 @@
 #include "time.h"
 #include "hud.h"
 
+typedef enum {
+	DIR_NORTH = 0,
+	DIR_NORTHEAST = 1,
+	DIR_EAST = 2,
+	DIR_SOUTHEAST = 3,
+	DIR_SOUTH = 4,
+	DIR_SOUTHWEST = 5,
+	DIR_WEST = 6,
+	DIR_NORTHWEST = 7
+} Dir;
+
 typedef struct {
 	Coord coord;
 	int animInc;
 	EnemyType type;
-	int id;
+	long lastRoamTime;
+	Dir roamDir;
+	bool isRoaming;
 } Enemy;
 
 //Attack function for player: Single animation, hits in direction of facing, enemy health reduces.
@@ -18,14 +31,18 @@ typedef struct {
 //Player vanishes when health is zero.
 //Enemy collision detection.
 
-#define MAX_ENEMY 50
+//TODO: Each enemy has a different animation inc?
+
+#define MAX_ENEMY 30
 #define WALK_FRAMES 4
 Enemy enemies[MAX_ENEMY];
 long lastIdleTime;
 int enemyCount = 0;
-const int INITIAL_ENEMIES = 5;
+const int INITIAL_ENEMIES = 50;
 const int IDLE_HZ = 1000 / 4;
-const double ENEMY_SPEED = 0.075;
+const double ENEMY_SPEED = 0.5;
+const double CHAR_BOUNDS = 15;
+const double DIR_CHANGE = 250;
 
 bool onScreen(Coord coord, double threshold) {
 	return inBounds(coord, makeRect(
@@ -36,31 +53,127 @@ bool onScreen(Coord coord, double threshold) {
 	));
 }
 
+bool wouldTouchEnemy(Coord a, int selfIndex, bool includePlayer) {
+	//Check player
+	if(includePlayer) {
+		if(inBounds(a, makeSquareBounds(pos, CHAR_BOUNDS))) {
+			return true;
+		}
+	}
+
+	//Check enemies.
+	for(int i=0; i < MAX_ENEMY; i++) {
+		if(selfIndex != i && inBounds(a, makeSquareBounds(enemies[i].coord, CHAR_BOUNDS))) {
+			return true;
+		}
+	}
+
+	return false;
+}
+
+Coord calcDirOffset(Coord original, Dir dir) {
+	Coord offset = zeroCoord();
+	switch(dir) {
+		case DIR_NORTH:
+			offset = makeCoord(0, -ENEMY_SPEED);
+			break;
+		case DIR_NORTHEAST:
+			offset = makeCoord(ENEMY_SPEED, -ENEMY_SPEED);
+			break;
+		case DIR_EAST:
+			offset = makeCoord(ENEMY_SPEED, 0);
+			break;
+		case DIR_SOUTHEAST:
+			offset = makeCoord(-ENEMY_SPEED, ENEMY_SPEED);
+			break;
+		case DIR_SOUTH:
+			offset = makeCoord(0, ENEMY_SPEED);
+			break;
+		case DIR_SOUTHWEST:
+			offset = makeCoord(-ENEMY_SPEED, ENEMY_SPEED);
+			break;
+		case DIR_WEST:
+			offset = makeCoord(-ENEMY_SPEED, 0);
+			break;
+		case DIR_NORTHWEST:
+			offset = makeCoord(-ENEMY_SPEED, -ENEMY_SPEED);
+			break;
+	}
+	return mergeCoord(original, offset);
+}
+
 void enemyGameFrame(void) {
 	for(int i=0; i < MAX_ENEMY; i++) {
 		if(enemies[i].coord.x == 0) continue;
 
-		Coord homeStep = getStep(enemies[i].coord, pos, ENEMY_SPEED, true);
-		Coord target = deriveCoord(enemies[i].coord, -homeStep.x, -homeStep.y);
+		Coord heading;
+		bool nowRoaming = false;
 		bool skipMove = false;
+
+		//Turn off roaming if enough time has elapsed.
+		if(enemies[i].isRoaming && isDue(clock(), enemies[i].lastRoamTime, DIR_CHANGE)) {
+			enemies[i].isRoaming = false;
+		}
+
+		//If we're roaming - head in that direction.
+		if(enemies[i].isRoaming) {
+			heading = calcDirOffset(enemies[i].coord, enemies[i].roamDir);
+		//Otherwise - home towards player.
+		}else{
+			Coord homeStep = getStep(enemies[i].coord, pos, ENEMY_SPEED, true);
+			heading = deriveCoord(enemies[i].coord, -homeStep.x, -homeStep.y);
+		}
 
 		//Loop through all enemies (plus player), and see if we would collide.
 		for(int j=-1; j < MAX_ENEMY; j++) {
-			/* Hack: Swap out player pos if -1, then go onto the enemies. This
-			 * lets us easily use the same detection code for both character
-			 * types, although this could also be a method...) */
+			//Player check.
 			Coord compare = j == -1 ? pos : enemies[j].coord;
 
 			//Don't collide with ourselves :p
-			if(j > -1 && enemies[i].id == enemies[j].id) continue;
+			if(j > -1 && i == j) continue;
 
-			//If our new target would put us next to an enemy, stop moving.
-			if(inBounds(target, makeSquareBounds(compare, 15))) {
-				double distI = calcDistance(enemies[i].coord, pos);
-				double distJ = calcDistance(compare, pos);
+			//Our heading will put us in the bounds of an enemy. Decide what to do.
+			if(inBounds(heading, makeSquareBounds(compare, CHAR_BOUNDS))) {
+				//If we're touching the player - stay where we are.
+				if(j == -1) {
+					skipMove = true;
+					break;
+				}
 
-				//If we're further away than the colliding enemy, stop him.
-				if(distI > distJ) {
+				//Only move around 5% of the time (more realistic)
+				//TODO: Change to delay?
+				if(chance(95)) {
+					skipMove = true;
+					continue;
+				}
+
+				//Try roaming in some other directions to free ourselves.
+				bool triedDirs[8] = { false, false, false, false, false, false, false, false };
+				Coord roamTarget;
+				int tryDir = 0;
+
+				//Keep trying in NSEW dirs until we've exhausted our attempts.
+				while(!triedDirs[0] || !triedDirs[1] || !triedDirs[2] || !triedDirs[3] || !triedDirs[4] || !triedDirs[5] || !triedDirs[6] || !triedDirs[7]) {
+					//Pick a dir we haven't tried yet.
+					do { tryDir = randomMq(0, 7); }
+					while(triedDirs[tryDir]);
+
+					triedDirs[tryDir] = true;
+
+					//Would we touch anyone by traveling in this direction?
+					roamTarget = calcDirOffset(enemies[i].coord, (Dir)tryDir);
+					if(!wouldTouchEnemy(roamTarget, i, false)) {
+						enemies[i].roamDir = (Dir)tryDir;
+						enemies[i].lastRoamTime = clock();
+						enemies[i].isRoaming = true;
+						nowRoaming = true;
+						break;
+					}
+				}
+
+				if(nowRoaming) {
+					break;
+				}else{
 					skipMove = true;
 					break;
 				}
@@ -68,7 +181,14 @@ void enemyGameFrame(void) {
 		}
 
 		if(!skipMove) {
-			enemies[i].coord = target;
+			//Move in the direction we're idly roaming in.
+			if(enemies[i].isRoaming) {
+				enemies[i].coord = calcDirOffset(enemies[i].coord, enemies[i].roamDir);
+
+			//Otherwise, home in on player.
+			}else{
+				enemies[i].coord = heading;
+			}
 		}
 	}
 }
@@ -132,9 +252,11 @@ void spawnEnemy(EnemyType type, Coord coord) {
 
 	Enemy e = {
 		coord,
-		1,
+		randomMq(1, 4),
 		type,
-		enemyCount
+		clock(),
+		DIR_NORTH,
+		false
 	};
 	enemies[enemyCount++] = e;
 }
