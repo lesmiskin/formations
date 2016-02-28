@@ -25,13 +25,10 @@ typedef struct {
 	bool isRoaming;
 } Enemy;
 
-//Attack function for player: Single animation, hits in direction of facing, enemy health reduces.
-//Enemies vanish with health is zero.
-//Enemies attack player with single frame, player health reduces.
-//Player vanishes when health is zero.
-//Enemy collision detection.
-
-//TODO: Each enemy has a different animation inc?
+//TODO: Enemy movement to be bound to a movementDir? (e.g. 8-way, not x-way)
+//TODO: Enemy standing frames when not moving.
+//TODO: Enemies face in direction they're walking in, when roaming.
+//TODO: Up and down enemy walking graphics.
 
 #define MAX_ENEMY 30
 #define WALK_FRAMES 4
@@ -142,7 +139,7 @@ void enemyGameFrame(void) {
 
 				//Only move around 5% of the time (more realistic)
 				//TODO: Change to delay?
-				if(chance(95)) {
+				if(chance(75)) {
 					skipMove = true;
 					continue;
 				}
@@ -217,11 +214,25 @@ void enemyRenderFrame(void){
 		if(enemies[i].coord.x == 0) continue;
 
 		Sprite sprite;
-		SDL_RendererFlip flip = enemies[i].coord.x > pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+		SDL_RendererFlip flip = SDL_FLIP_NONE;
+
+		if(enemies[i].isRoaming) {
+			//Flip in the direction we're roaming (default case takes care of left-facing)
+			switch(enemies[i].roamDir) {
+				case DIR_SOUTH:
+				case DIR_SOUTHWEST:
+				case DIR_WEST:
+				case DIR_NORTHWEST:
+					flip = SDL_FLIP_HORIZONTAL;
+					break;
+			}
+		}else{
+			flip = enemies[i].coord.x > pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+		}
 
 		char frameFile[25];
 
-		//Ugh... Time constraints!
+		// Choose graphic based on type.
 		switch(enemies[i].type) {
 			case ENEMY_WOLFMAN: {
 				strcpy(frameFile, "werewolf-walk-%02d.png");
