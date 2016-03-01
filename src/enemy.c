@@ -222,6 +222,8 @@ void enemyRenderFrame(void){
 			//Flip in the direction we're roaming (default case takes care of left-facing)
 			switch(enemies[i].roamDir) {
 				case DIR_SOUTH:
+					isDown = true;
+					break;
 				case DIR_SOUTHWEST:
 				case DIR_WEST:
 				case DIR_NORTHWEST:
@@ -232,7 +234,6 @@ void enemyRenderFrame(void){
 					break;
 			}
 		}else{
-			flip = enemies[i].coord.x > pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 			isUp = enemies[i].coord.y > pos.y;
 			isDown = enemies[i].coord.y < pos.y;
 		}
@@ -242,24 +243,34 @@ void enemyRenderFrame(void){
 		// Choose graphic based on type.
 		switch(enemies[i].type) {
 			case ENEMY_WOLFMAN: {
-				strcpy(frameFile, "werewolf-walk-%02d.png");
+				if(isUp) {
+					strcpy(frameFile, "werewolf-walk-up-%02d.png");
+				}else{
+					strcpy(frameFile, "werewolf-walk-%02d.png");
+					flip = enemies[i].coord.x > pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+				}
 				break;
 			}
 			case ENEMY_DIGGER: {
 				strcpy(frameFile, "digger-walk-%02d.png");
+				flip = enemies[i].coord.x > pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 				break;
 			}
 			case ENEMY_CTHULU: {
 				strcpy(frameFile, "cthulu-walk-%02d.png");
+				flip = enemies[i].coord.x > pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 				break;
 			}
 			case ENEMY_DRACULA: {
 				if(isUp) {
 					strcpy(frameFile, "dracula-walk-up-%02d.png");
+					flip = SDL_FLIP_HORIZONTAL;	//hack
 				}else if(isDown){
 					strcpy(frameFile, "dracula-walk-down-%02d.png");
+					flip = SDL_FLIP_HORIZONTAL;	//hack
 				}else{
 					strcpy(frameFile, "dracula-walk-%02d.png");
+					flip = enemies[i].coord.x > pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 				}
 				break;
 			}

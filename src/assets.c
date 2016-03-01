@@ -111,6 +111,10 @@ static void loadImages(void) {
         { "werewolf-walk-02.png" },
         { "werewolf-walk-03.png" },
         { "werewolf-walk-04.png" },
+        { "werewolf-walk-up-01.png" },
+        { "werewolf-walk-up-02.png" },
+        { "werewolf-walk-up-03.png" },
+        { "werewolf-walk-up-04.png" },
 
         { "cthulu-walk-01.png" },
         { "cthulu-walk-02.png" },
