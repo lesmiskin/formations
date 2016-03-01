@@ -245,6 +245,8 @@ void enemyRenderFrame(void){
 			case ENEMY_WOLFMAN: {
 				if(isUp) {
 					strcpy(frameFile, "werewolf-walk-up-%02d.png");
+				}else if(isDown) {
+					strcpy(frameFile, "werewolf-walk-down-%02d.png");
 				}else{
 					strcpy(frameFile, "werewolf-walk-%02d.png");
 					flip = enemies[i].coord.x > pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
