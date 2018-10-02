@@ -53,12 +53,15 @@ void pollInput(void) {
   if (keysHeld[SDL_SCANCODE_F3]) commands[CMD_FORMATION_3] = true;
   if (keysHeld[SDL_SCANCODE_F4]) commands[CMD_FORMATION_4] = true;
 
-	//Combat keys
-	if(keysHeld[SDL_SCANCODE_LEFT]) commands[CMD_PLAYER_LEFT] = true;
-	else if(keysHeld[SDL_SCANCODE_RIGHT]) commands[CMD_PLAYER_RIGHT] = true;
+  if (keysHeld[SDL_SCANCODE_Q]) commands[CMD_ROTATE_FORM_CCW] = true;
+  if (keysHeld[SDL_SCANCODE_E]) commands[CMD_ROTATE_FORM_CW] = true;
 
-	if(keysHeld[SDL_SCANCODE_UP]) commands[CMD_PLAYER_UP] = true;
-	else if(keysHeld[SDL_SCANCODE_DOWN]) commands[CMD_PLAYER_DOWN] = true;
+	//Combat keys
+	if(keysHeld[SDL_SCANCODE_A]) commands[CMD_PLAYER_LEFT] = true;
+	if(keysHeld[SDL_SCANCODE_D]) commands[CMD_PLAYER_RIGHT] = true;
+
+	if(keysHeld[SDL_SCANCODE_W]) commands[CMD_PLAYER_UP] = true;
+	if(keysHeld[SDL_SCANCODE_S]) commands[CMD_PLAYER_DOWN] = true;
 }
 
 void processSystemCommands(void) {

@@ -10,6 +10,7 @@
 
 #define WALK_FRAMES 4
 
+
 const double PC_BOUNDS = 15;
 const double MOVE_INC = 1;
 
@@ -48,6 +49,17 @@ void playerGameFrame(Player *p) {
 	Coord heading = deriveCoord(p->pos,step.x,step.y);
 	p->pos.x = fmin(screenBounds.x-PC_BOUNDS/2,fmax(0+PC_BOUNDS/2,heading.x));
 	p->pos.y = fmin(screenBounds.y-PC_BOUNDS/2,fmax(0+PC_BOUNDS/2,heading.y));
+
+	// set formation
+	if(checkCommand(CMD_FORMATION_1)) p->formation = 1;
+	if(checkCommand(CMD_FORMATION_2)) p->formation = 2;
+	if(checkCommand(CMD_FORMATION_3)) p->formation = 3;
+	if(checkCommand(CMD_FORMATION_4)) p->formation = 3;
+
+	// rotate formation
+	if(checkCommand(CMD_ROTATE_FORM_CW)) p->goalAngle += 1;
+	if(checkCommand(CMD_ROTATE_FORM_CCW)) p->goalAngle -= 1;
+
 	if (checkCommand(CMD_PLAYER_LEFT)) {
 		p->dir = false;
 		p->walking = true;
@@ -66,19 +78,24 @@ void playerGameFrame(Player *p) {
 }
 
 void playerSetFormationGoals(Player *p) {
-	if(checkCommand(CMD_FORMATION_1)) p->formation = 1;
-	if(checkCommand(CMD_FORMATION_2)) p->formation = 2;
-	if(checkCommand(CMD_FORMATION_3)) p->formation = 3;
-	if(checkCommand(CMD_FORMATION_4)) p->formation = 3;
 	for(int i=0; i < 8; i++) {
+		Coord g0;
+		// shape it
 		if(p->formation == 1) {
-			p->goals[i] = makeCoord(p->pos.x + ((i<4?i:i+1)%3-1)*PC_BOUNDS, p->pos.y + ((i<4?i:i+1)/3-1)*PC_BOUNDS);
+			g0 = makeCoord(((i<4?i:i+1)%3-1)*PC_BOUNDS, ((i<4?i:i+1)/3-1)*PC_BOUNDS);
 		} else if (p->formation == 2) {
-			p->goals[i] = makeCoord(p->pos.x + (i-3.5)*.75*PC_BOUNDS, p->pos.y - PC_BOUNDS);
+			g0 = makeCoord((i-3.5)*.75*PC_BOUNDS, -PC_BOUNDS);
 		} else if (p->formation == 3) {
-			p->goals[i] = makeCoord(p->pos.x + (i-3.5)*.5*PC_BOUNDS, p->pos.y + (i%4)*(i/4 > 0 ? 1 : -1)*.25*PC_BOUNDS - (i/4 > 0 ? .75*PC_BOUNDS : 0));
+			g0 = makeCoord((i-3.5)*.5*PC_BOUNDS, (i%4)*(i/4 > 0 ? 1 : -1)*.25*PC_BOUNDS - (i/4 > 0 ? .75*PC_BOUNDS : 0));
 		}
+
+		// rotate it
+		g0 = makeCoord(g0.x*cos(degToRad(p->goalAngle))+g0.y*sin(degToRad(p->goalAngle)),g0.x*sin(degToRad(p->goalAngle))+g0.y*cos(degToRad(p->goalAngle)));
+
+		// translate it
+		p->goals[i] = makeCoord(p->pos.x + g0.x,p->pos.y + g0.y);
 	}
+
 }
 
 void initPlayer() {
@@ -87,6 +104,7 @@ void initPlayer() {
 		makeCoord(25,50),
 		1,
 		{0},
+		0,
 		true,
 		false,
 		1

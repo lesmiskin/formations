@@ -6,10 +6,18 @@
 #include "scene.h"
 #include "player.h"
 #include "assets.h"
-
+#define M_PI 3.14159265358979323846264338327950288
 static const double RADIAN_CIRCLE = 6.28;
 
 GameMode currentMode = MODE_GAME;
+
+double degToRad(double deg) {
+	return deg * M_PI / 180.0;
+}
+
+double radToDeg(double rad) {
+	return rad * 180 / M_PI;
+}
 
 void changeMode(GameMode newMode) {
 	currentMode = newMode;

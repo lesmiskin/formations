@@ -14,7 +14,9 @@ typedef enum {
   CMD_FORMATION_1 = 10,
   CMD_FORMATION_2 = 11,
   CMD_FORMATION_3 = 12,
-  CMD_FORMATION_4 = 13
+  CMD_FORMATION_4 = 13,
+  CMD_ROTATE_FORM_CCW = 15,
+  CMD_ROTATE_FORM_CW = 16
 } Command;
 
 #endif

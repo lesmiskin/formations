@@ -5,6 +5,7 @@ typedef struct {
   Coord pos;
   int formation;
   Coord goals[8];
+  double goalAngle;
   bool dir;
   bool walking;
   int walkInc;
