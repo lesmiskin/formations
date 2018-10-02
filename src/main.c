@@ -90,7 +90,7 @@ int main()  {
     if(timer(&lastGameFrameTime, GAME_HZ)) {
       pollInput();
       sceneGameFrame();
-      playerGameFrame();
+      playerGameFrame(plr);
       enemyGameFrame();
       hudGameFrame();
       processSystemCommands();
@@ -102,14 +102,14 @@ int main()  {
     //Animation frame
     if(timer(&lastAnimFrameTime, ANIMATION_HZ)) {
       sceneAnimateFrame();
-      playerAnimateFrame();
+      playerAnimateFrame(plr);
     }
 
     //Renderer frame
     double renderFPS;
     if(timer(&lastRenderFrameTime, RENDER_HZ)) {
       sceneRenderFrame();
-      playerRenderFrame();
+      playerRenderFrame(plr);
       enemyRenderFrame();
       hudRenderFrame();
       updateCanvas();

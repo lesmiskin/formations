@@ -1,46 +1,40 @@
 #include <time.h>
+#include "common.h"
 #include "player.h"
 #include "assets.h"
 #include "input.h"
 #include "hud.h"
 #include "renderer.h"
-
 #include "scene.h"
 #include "enemy.h"
 
-const double PC_BOUNDS = 15;
-double MOVE_INC = 0.5;
-
 #define WALK_FRAMES 4
 
-Coord pos = { 25, 50 };
-Coord goals[8];
-int formation = 1;
-int walkInc = 1;
-double health = 100;
-bool playerDir = false;
-bool walking = false;
+const double PC_BOUNDS = 15;
+const double MOVE_INC = 1;
 
-void playerAnimateFrame(void) {
-	if(!walking) return;
-	walkInc = (walkInc == WALK_FRAMES) ? 1 : walkInc + 1;
+Player * plr;
+
+void playerAnimateFrame(Player *p) {
+	if(!p->walking) return;
+	p->walkInc = (p->walkInc == WALK_FRAMES) ? 1 : p->walkInc + 1;
 }
 
-void playerRenderFrame(void) {
+void playerRenderFrame(Player *p) {
 	//Draw player.
-	SDL_RendererFlip flip = playerDir ? SDL_FLIP_NONE : SDL_FLIP_HORIZONTAL;
+	SDL_RendererFlip flip = p->dir ? SDL_FLIP_NONE : SDL_FLIP_HORIZONTAL;
 
 	char frameFile[25];
-	sprintf(frameFile, "player-walk-sword-%02d.png", walkInc);
+	sprintf(frameFile, "player-walk-sword-%02d.png", p->walkInc);
 	Sprite player = makeFlippedSprite(frameFile, flip);
 
 //	SDL_SetTextureColorMod(player.texture, 164, 164, 192);
 
-	drawSprite(player, pos);
+	drawSprite(player, p->pos);
 }
 
-void playerGameFrame(void) {
-	walking = false;
+void playerGameFrame(Player *p) {
+	p->walking = false;
 
 	//NB: We still turn the player sprite where we can, even if we're hard
 	// up against a screen bound.
@@ -51,45 +45,52 @@ void playerGameFrame(void) {
 	+ (checkCommand(CMD_PLAYER_DOWN) ? 1 : 0) * 1);
 
 	Coord step = getStep(zeroCoord(),goal,MOVE_INC);
-	Coord heading = deriveCoord(pos,step.x,step.y);
-	pos.x = fmin(screenBounds.x-PC_BOUNDS/2,fmax(0+PC_BOUNDS/2,heading.x));
-	pos.y = fmin(screenBounds.y-PC_BOUNDS/2,fmax(0+PC_BOUNDS/2,heading.y));
+	Coord heading = deriveCoord(p->pos,step.x,step.y);
+	p->pos.x = fmin(screenBounds.x-PC_BOUNDS/2,fmax(0+PC_BOUNDS/2,heading.x));
+	p->pos.y = fmin(screenBounds.y-PC_BOUNDS/2,fmax(0+PC_BOUNDS/2,heading.y));
 	if (checkCommand(CMD_PLAYER_LEFT)) {
-		// if(pos.x > 0) pos.x -= MOVE_INC;
-		playerDir = false;
-		walking = true;
+		p->dir = false;
+		p->walking = true;
 	}
 	if (checkCommand(CMD_PLAYER_RIGHT)) {
-		// if(pos.x < screenBounds.x) pos.x += MOVE_INC;
-		playerDir = true;
-		walking = true;
+		p->dir = true;
+		p->walking = true;
 	}
-	if (checkCommand(CMD_PLAYER_UP) && pos.y > 0) {
-		// pos.y -= MOVE_INC;
-		walking = true;
+	if (checkCommand(CMD_PLAYER_UP) && p->pos.y > 0) {
+		p->walking = true;
 	}
-	if (checkCommand(CMD_PLAYER_DOWN) && pos.y < screenBounds.y) {
-		// pos.y += MOVE_INC;
-		walking = true;
+	if (checkCommand(CMD_PLAYER_DOWN) && p->pos.y < screenBounds.y) {
+		p->walking = true;
 	}
-	setFormation(formation);
+	playerSetFormationGoals(p);
 }
 
-void setFormation(int formation) {
+void playerSetFormationGoals(Player *p) {
+	if(checkCommand(CMD_FORMATION_1)) p->formation = 1;
+	if(checkCommand(CMD_FORMATION_2)) p->formation = 2;
+	if(checkCommand(CMD_FORMATION_3)) p->formation = 3;
+	if(checkCommand(CMD_FORMATION_4)) p->formation = 3;
 	for(int i=0; i < 8; i++) {
-		if(formation == 1) {
-			goals[i] = makeCoord(pos.x + ((i<4?i:i+1)%3-1)*PC_BOUNDS, pos.y + ((i<4?i:i+1)/3-1)*PC_BOUNDS);
-		} else if (formation == 2) {
-			goals[i] = makeCoord(pos.x + (i-3.5)*.75*PC_BOUNDS, pos.y - PC_BOUNDS);
-		} else if (formation == 3) {
-			goals[i] = makeCoord(pos.x + (i-3.5)*.5*PC_BOUNDS, pos.y + (i%4)*(i/4 > 0 ? 1 : -1)*.25*PC_BOUNDS - (i/4 > 0 ? .75*PC_BOUNDS : 0));
+		if(p->formation == 1) {
+			p->goals[i] = makeCoord(p->pos.x + ((i<4?i:i+1)%3-1)*PC_BOUNDS, p->pos.y + ((i<4?i:i+1)/3-1)*PC_BOUNDS);
+		} else if (p->formation == 2) {
+			p->goals[i] = makeCoord(p->pos.x + (i-3.5)*.75*PC_BOUNDS, p->pos.y - PC_BOUNDS);
+		} else if (p->formation == 3) {
+			p->goals[i] = makeCoord(p->pos.x + (i-3.5)*.5*PC_BOUNDS, p->pos.y + (i%4)*(i/4 > 0 ? 1 : -1)*.25*PC_BOUNDS - (i/4 > 0 ? .75*PC_BOUNDS : 0));
 		}
 	}
 }
 
 void initPlayer() {
-	pos.x = 25;
-	pos.y = 50;
-	health = 100;
-	setFormation(formation);
+	plr = malloc(sizeof(Player));
+	Player p = {
+		makeCoord(25,50),
+		1,
+		{0},
+		true,
+		false,
+		1
+	};
+	*plr = p;
+	playerSetFormationGoals(plr);
 }

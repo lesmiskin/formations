@@ -1,8 +1,6 @@
 #ifndef INPUT_H
 #define INPUT_H
 
-#include "common.h"
-
 extern void pollInput(void);
 extern void processSystemCommands(void);
 extern bool checkCommand(int commandFlag);
@@ -15,7 +13,8 @@ typedef enum {
 	CMD_PLAYER_UP = 8,
   CMD_FORMATION_1 = 10,
   CMD_FORMATION_2 = 11,
-  CMD_FORMATION_3 = 12
+  CMD_FORMATION_3 = 12,
+  CMD_FORMATION_4 = 13
 } Command;
 
 #endif

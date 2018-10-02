@@ -3,19 +3,16 @@
 
 #include "common.h"
 
-#define MAX_SHOTS 50
-
 typedef struct {
-    Coord coord;
-    Coord target;
-    double angle;
-} Shot;
+	Coord coord;
+	int goal;
+	int animInc;
+} Enemy;
 
-extern void enemyGameFrame(void);
-extern void enemyRenderFrame(void);
-extern void initEnemy(void);
-extern void enemyAnimateFrame(void);
+extern void enemyGameFrame();
+extern void enemyRenderFrame();
+extern void initEnemy();
+extern void enemyAnimateFrame();
 extern void spawnEnemy(Coord coord);
-extern Shot shots[MAX_SHOTS];
 
 #endif

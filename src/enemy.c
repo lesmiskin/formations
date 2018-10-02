@@ -5,23 +5,6 @@
 #include "time.h"
 #include "hud.h"
 
-typedef enum {
-	DIR_NORTH = 0,
-	DIR_NORTHEAST = 1,
-	DIR_EAST = 2,
-	DIR_SOUTHEAST = 3,
-	DIR_SOUTH = 4,
-	DIR_SOUTHWEST = 5,
-	DIR_WEST = 6,
-	DIR_NORTHWEST = 7
-} Dir;
-
-typedef struct {
-	Coord coord;
-	Coord goal;
-	int animInc;
-} Enemy;
-
 #define MAX_ENEMY 8
 #define WALK_FRAMES 4
 Enemy enemies[MAX_ENEMY];
@@ -45,7 +28,7 @@ bool onScreen(Coord coord, double threshold) {
 bool wouldTouchEnemy(Coord a, int selfIndex, bool includePlayer) {
 	//Check player
 	if(includePlayer) {
-		if(inBounds(a, makeSquareBounds(pos, CHAR_BOUNDS))) {
+		if(inBounds(a, makeSquareBounds(plr->pos, CHAR_BOUNDS))) {
 			return true;
 		}
 	}
@@ -60,65 +43,66 @@ bool wouldTouchEnemy(Coord a, int selfIndex, bool includePlayer) {
 	return false;
 }
 
-Coord calcDirOffset(Coord original, Dir dir) {
-	Coord offset = zeroCoord();
-	switch(dir) {
-		case DIR_NORTH:
-			offset = makeCoord(0, -ENEMY_SPEED);
-			break;
-		case DIR_NORTHEAST:
-			offset = makeCoord(ENEMY_SPEED, -ENEMY_SPEED);
-			break;
-		case DIR_EAST:
-			offset = makeCoord(ENEMY_SPEED, 0);
-			break;
-		case DIR_SOUTHEAST:
-			offset = makeCoord(-ENEMY_SPEED, ENEMY_SPEED);
-			break;
-		case DIR_SOUTH:
-			offset = makeCoord(0, ENEMY_SPEED);
-			break;
-		case DIR_SOUTHWEST:
-			offset = makeCoord(-ENEMY_SPEED, ENEMY_SPEED);
-			break;
-		case DIR_WEST:
-			offset = makeCoord(-ENEMY_SPEED, 0);
-			break;
-		case DIR_NORTHWEST:
-			offset = makeCoord(-ENEMY_SPEED, -ENEMY_SPEED);
-			break;
-	}
-	return mergeCoord(original, offset);
-}
+// typedef struct {
+// 	double d;
+// 	int i, j;
+// } Glp;
 
 void enemyGameFrame(void) {
-	bool ds[8];
-	memset(ds, true, sizeof(ds));
+	bool ts[8];
+	memset(ts, true, sizeof(ts));
+
+	// // greatest least path first
+	// bool es[MAX_ENEMY];
+	// memset(es, true, sizeof(es));
+	// for(int k=0; k<MAX_ENEMY; k++) {
+	// 	Glp glp = {0, -1, -1};
+		double ds[MAX_ENEMY][8];
+		for(int i=0;i<MAX_ENEMY;i++) {
+	// 		if(es[i] != true) { continue; }
+	// 		int d0 = enemies[i].goal == -1 ? 999999 : calcDistance(goals[enemies[i].goal],enemies[i].coord);
+	// 		int j0 = -1;
+			for(int j=0;j<8;j++) {
+	// 			if(ts[j] != true) { continue; }
+				ds[i][j] = calcDistance(plr->goals[j],enemies[i].coord);
+	// 			if(ds[i][j] < d0) {
+	// 				d0 = ds[i][j];
+	// 				j0 = j;
+	// 			}
+			}
+	// 		if(d0 > glp.d) {
+	// 			glp.d = d0;
+	// 			glp.i = i;
+	// 			glp.j = j0;
+	// 		}
+		}
+	// 	ts[glp.j] = false;
+	// 	es[glp.i] = false;
+	// 	enemies[glp.i].goal = glp.j;
+	// }
+
 	for(int i=0; i < MAX_ENEMY; i++) {
 		// greedy with shortcut
-		int i0;
+		int j0;
 		float d0 = 999999;
 		for(int j=0; j < 8; j++) {
-			if(ds[j] != true) { continue; } // shortcut already taken goals
-			float d = calcDistance(goals[j],enemies[i].coord);
-			if(d < d0) {
-				d0 = d;
-				i0 = j;
+			if(ts[j] != true) { continue; } // shortcut already taken goals
+			if(ds[i][j] < d0) {
+				d0 = ds[i][j];
+				j0 = j;
 			}
 		}
-		ds[i0] = false;
-		enemies[i].goal = goals[i0];
-
-		bool skipStep = false;
+		ts[j0] = false;
+		enemies[i].goal = j0;
 
 		// home towards your goal
-		Coord step = getStep(enemies[i].coord, enemies[i].goal, ENEMY_SPEED);
+		Coord step = getStep(enemies[i].coord, plr->goals[enemies[i].goal], ENEMY_SPEED);
 		Coord heading = deriveCoord(enemies[i].coord, step.x, step.y);
 
 		//Loop through all enemies (plus player), and see if we would collide.
 		for(int j=-1; j < MAX_ENEMY; j++) {
 			//Player check.
-			Coord compare = j == -1 ? pos : enemies[j].coord;
+			Coord compare = j == -1 ? plr->pos : enemies[j].coord;
 
 			//Don't collide with ourselves
 			if(j > -1 && i == j) continue;
@@ -128,7 +112,7 @@ void enemyGameFrame(void) {
 				// TODO: what do!?
 			}
 		}
-		if(!skipStep) { enemies[i].coord = heading; }
+		enemies[i].coord = heading;
 	}
 }
 
@@ -160,8 +144,8 @@ void enemyRenderFrame(void){
 		bool isUp = false;
 		bool isDown = false;
 
-		isUp = enemies[i].coord.y > pos.y;
-		isDown = enemies[i].coord.y < pos.y;
+		isUp = enemies[i].coord.y > plr->pos.y;
+		isDown = enemies[i].coord.y < plr->pos.y;
 
 		char frameFile[25];
 
@@ -172,7 +156,7 @@ void enemyRenderFrame(void){
 			strcpy(frameFile, "werewolf-walk-down-%02d.png");
 		} else{
 			strcpy(frameFile, "werewolf-walk-%02d.png");
-			flip = enemies[i].coord.x > pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+			flip = enemies[i].coord.x > plr->pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 		}
 
 		sprintf(frameFile, frameFile, enemies[i].animInc);
@@ -186,7 +170,7 @@ void spawnEnemy(Coord coord) {
 
 	Enemy e = {
 		coord,
-		{0, 0},
+		-1,
 		randomMq(1,4)
 	};
 	enemies[enemyCount++] = e;

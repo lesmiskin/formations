@@ -44,29 +44,21 @@ void pollInput(void) {
 					initEnemy();
 					initPlayer();
 				}
-        if (keypress == SDL_SCANCODE_Q) {
-          formation = 1;
-        }
-        if (keypress == SDL_SCANCODE_W) {
-          formation = 2;
-        }
-        if (keypress == SDL_SCANCODE_E) {
-          formation = 3;
-        }
 			}
 		}
 	}
 
-	//Combat keys
-	if(keysHeld[SDL_SCANCODE_LEFT])
-		commands[CMD_PLAYER_LEFT] = true;
-	else if(keysHeld[SDL_SCANCODE_RIGHT])
-		commands[CMD_PLAYER_RIGHT] = true;
+  if (keysHeld[SDL_SCANCODE_F1]) commands[CMD_FORMATION_1] = true;
+  if (keysHeld[SDL_SCANCODE_F2]) commands[CMD_FORMATION_2] = true;
+  if (keysHeld[SDL_SCANCODE_F3]) commands[CMD_FORMATION_3] = true;
+  if (keysHeld[SDL_SCANCODE_F4]) commands[CMD_FORMATION_4] = true;
 
-	if(keysHeld[SDL_SCANCODE_UP])
-		commands[CMD_PLAYER_UP] = true;
-	else if(keysHeld[SDL_SCANCODE_DOWN])
-		commands[CMD_PLAYER_DOWN] = true;
+	//Combat keys
+	if(keysHeld[SDL_SCANCODE_LEFT]) commands[CMD_PLAYER_LEFT] = true;
+	else if(keysHeld[SDL_SCANCODE_RIGHT]) commands[CMD_PLAYER_RIGHT] = true;
+
+	if(keysHeld[SDL_SCANCODE_UP]) commands[CMD_PLAYER_UP] = true;
+	else if(keysHeld[SDL_SCANCODE_DOWN]) commands[CMD_PLAYER_DOWN] = true;
 }
 
 void processSystemCommands(void) {

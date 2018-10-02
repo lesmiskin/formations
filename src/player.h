@@ -1,17 +1,21 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
-#include "common.h"
+typedef struct {
+  Coord pos;
+  int formation;
+  Coord goals[8];
+  bool dir;
+  bool walking;
+  int walkInc;
+} Player;
 
-extern void playerGameFrame(void);
-extern void playerRenderFrame(void);
-extern void playerShadowFrame(void);
+extern Player *plr;
+extern void playerGameFrame(Player*);
+extern void playerRenderFrame(Player*);
+extern void playerShadowFrame(Player*);
+extern void playerSetFormationGoals(Player*);
+extern void playerAnimateFrame(Player*);
 extern void initPlayer();
-extern void setFormation(int);
-extern Coord pos;
-extern Coord goals[8];
-extern int formation;
-extern void playerAnimateFrame(void);
-extern double health;
 
 #endif

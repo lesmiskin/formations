@@ -27,7 +27,6 @@ extern void changeMode(GameMode newMode);
 extern SDL_Window *window;
 extern bool running;
 extern Coord makeCoord(double x, double y);
-extern Coord mergeCoord(Coord original, Coord derive);
 extern Coord deriveCoord(Coord original, double xOffset, double yOffset);
 extern Coord zeroCoord();
 extern bool timer(long *lastTime, double hertz);
