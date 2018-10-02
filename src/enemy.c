@@ -18,19 +18,11 @@ typedef enum {
 
 typedef struct {
 	Coord coord;
+	Coord goal;
 	int animInc;
-	EnemyType type;
-	long lastRoamTime;
-	Dir roamDir;
-	bool isRoaming;
 } Enemy;
 
-//TODO: Enemy movement to be bound to a movementDir? (e.g. 8-way, not x-way)
-//TODO: Enemy standing frames when not moving.
-//TODO: Enemies face in direction they're walking in, when roaming.
-//TODO: Up and down enemy walking graphics.
-
-#define MAX_ENEMY 30
+#define MAX_ENEMY 8
 #define WALK_FRAMES 4
 Enemy enemies[MAX_ENEMY];
 long lastIdleTime;
@@ -100,93 +92,43 @@ Coord calcDirOffset(Coord original, Dir dir) {
 }
 
 void enemyGameFrame(void) {
+	bool ds[8];
+	memset(ds, true, sizeof(ds));
 	for(int i=0; i < MAX_ENEMY; i++) {
-		if(enemies[i].coord.x == 0) continue;
-
-		Coord heading;
-		bool nowRoaming = false;
-		bool skipMove = false;
-
-		//Turn off roaming if enough time has elapsed.
-		if(enemies[i].isRoaming && isDue(clock(), enemies[i].lastRoamTime, DIR_CHANGE)) {
-			enemies[i].isRoaming = false;
+		// greedy with shortcut
+		int i0;
+		float d0 = 999999;
+		for(int j=0; j < 8; j++) {
+			if(ds[j] != true) { continue; } // shortcut already taken goals
+			float d = calcDistance(goals[j],enemies[i].coord);
+			if(d < d0) {
+				d0 = d;
+				i0 = j;
+			}
 		}
+		ds[i0] = false;
+		enemies[i].goal = goals[i0];
 
-		//If we're roaming - head in that direction.
-		if(enemies[i].isRoaming) {
-			heading = calcDirOffset(enemies[i].coord, enemies[i].roamDir);
-		//Otherwise - home towards player.
-		}else{
-			Coord homeStep = getStep(enemies[i].coord, pos, ENEMY_SPEED, true);
-			heading = deriveCoord(enemies[i].coord, -homeStep.x, -homeStep.y);
-		}
+		bool skipStep = false;
+
+		// home towards your goal
+		Coord step = getStep(enemies[i].coord, enemies[i].goal, ENEMY_SPEED);
+		Coord heading = deriveCoord(enemies[i].coord, step.x, step.y);
 
 		//Loop through all enemies (plus player), and see if we would collide.
 		for(int j=-1; j < MAX_ENEMY; j++) {
 			//Player check.
 			Coord compare = j == -1 ? pos : enemies[j].coord;
 
-			//Don't collide with ourselves :p
+			//Don't collide with ourselves
 			if(j > -1 && i == j) continue;
 
 			//Our heading will put us in the bounds of an enemy. Decide what to do.
 			if(inBounds(heading, makeSquareBounds(compare, CHAR_BOUNDS))) {
-				//If we're touching the player - stay where we are.
-				if(j == -1) {
-					skipMove = true;
-					break;
-				}
-
-				//Only move around 5% of the time (more realistic)
-				//TODO: Change to delay?
-				if(chance(75)) {
-					skipMove = true;
-					continue;
-				}
-
-				//Try roaming in some other directions to free ourselves.
-				bool triedDirs[8] = { false, false, false, false, false, false, false, false };
-				Coord roamTarget;
-				int tryDir = 0;
-
-				//Keep trying in NSEW dirs until we've exhausted our attempts.
-				while(!triedDirs[0] || !triedDirs[1] || !triedDirs[2] || !triedDirs[3] || !triedDirs[4] || !triedDirs[5] || !triedDirs[6] || !triedDirs[7]) {
-					//Pick a dir we haven't tried yet.
-					do { tryDir = randomMq(0, 7); }
-					while(triedDirs[tryDir]);
-
-					triedDirs[tryDir] = true;
-
-					//Would we touch anyone by traveling in this direction?
-					roamTarget = calcDirOffset(enemies[i].coord, (Dir)tryDir);
-					if(!wouldTouchEnemy(roamTarget, i, false)) {
-						enemies[i].roamDir = (Dir)tryDir;
-						enemies[i].lastRoamTime = clock();
-						enemies[i].isRoaming = true;
-						nowRoaming = true;
-						break;
-					}
-				}
-
-				if(nowRoaming) {
-					break;
-				}else{
-					skipMove = true;
-					break;
-				}
+				// TODO: what do!?
 			}
 		}
-
-		if(!skipMove) {
-			//Move in the direction we're idly roaming in.
-			if(enemies[i].isRoaming) {
-				enemies[i].coord = calcDirOffset(enemies[i].coord, enemies[i].roamDir);
-
-			//Otherwise, home in on player.
-			}else{
-				enemies[i].coord = heading;
-			}
-		}
+		if(!skipStep) { enemies[i].coord = heading; }
 	}
 }
 
@@ -202,7 +144,7 @@ void enemyAnimateFrame(void) {
 		//Increment animations.
 		if(enemies[i].animInc < 4) {
 			enemies[i].animInc++;
-		}else{
+		} else {
 			enemies[i].animInc = 1;
 		}
 	}
@@ -218,64 +160,19 @@ void enemyRenderFrame(void){
 		bool isUp = false;
 		bool isDown = false;
 
-		if(enemies[i].isRoaming) {
-			//Flip in the direction we're roaming (default case takes care of left-facing)
-			switch(enemies[i].roamDir) {
-				case DIR_SOUTH:
-					isDown = true;
-					break;
-				case DIR_SOUTHWEST:
-				case DIR_WEST:
-				case DIR_NORTHWEST:
-					flip = SDL_FLIP_HORIZONTAL;
-					break;
-				case DIR_NORTH:
-					isUp = true;
-					break;
-			}
-		}else{
-			isUp = enemies[i].coord.y > pos.y;
-			isDown = enemies[i].coord.y < pos.y;
-		}
+		isUp = enemies[i].coord.y > pos.y;
+		isDown = enemies[i].coord.y < pos.y;
 
 		char frameFile[25];
 
 		// Choose graphic based on type.
-		switch(enemies[i].type) {
-			case ENEMY_WOLFMAN: {
-				if(isUp) {
-					strcpy(frameFile, "werewolf-walk-up-%02d.png");
-				}else if(isDown) {
-					strcpy(frameFile, "werewolf-walk-down-%02d.png");
-				}else{
-					strcpy(frameFile, "werewolf-walk-%02d.png");
-					flip = enemies[i].coord.x > pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
-				}
-				break;
-			}
-			case ENEMY_DIGGER: {
-				strcpy(frameFile, "digger-walk-%02d.png");
-				flip = enemies[i].coord.x > pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
-				break;
-			}
-			case ENEMY_CTHULU: {
-				strcpy(frameFile, "cthulu-walk-%02d.png");
-				flip = enemies[i].coord.x > pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
-				break;
-			}
-			case ENEMY_DRACULA: {
-				if(isUp) {
-					strcpy(frameFile, "dracula-walk-up-%02d.png");
-					flip = SDL_FLIP_HORIZONTAL;	//hack
-				}else if(isDown){
-					strcpy(frameFile, "dracula-walk-down-%02d.png");
-					flip = SDL_FLIP_HORIZONTAL;	//hack
-				}else{
-					strcpy(frameFile, "dracula-walk-%02d.png");
-					flip = enemies[i].coord.x > pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
-				}
-				break;
-			}
+		if(isUp) {
+			strcpy(frameFile, "werewolf-walk-up-%02d.png");
+		} else if(isDown) {
+			strcpy(frameFile, "werewolf-walk-down-%02d.png");
+		} else{
+			strcpy(frameFile, "werewolf-walk-%02d.png");
+			flip = enemies[i].coord.x > pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 		}
 
 		sprintf(frameFile, frameFile, enemies[i].animInc);
@@ -284,16 +181,13 @@ void enemyRenderFrame(void){
 	}
 }
 
-void spawnEnemy(EnemyType type, Coord coord) {
+void spawnEnemy(Coord coord) {
 	if(enemyCount == MAX_ENEMY) return;
 
 	Enemy e = {
 		coord,
-		randomMq(1, 4),
-		type,
-		clock(),
-		DIR_NORTH,
-		false
+		{0, 0},
+		randomMq(1,4)
 	};
 	enemies[enemyCount++] = e;
 }
@@ -302,7 +196,6 @@ void initEnemy(void) {
 	//Make the enemies
 	for(int i=0; i < INITIAL_ENEMIES; i++) {
 		spawnEnemy(
-			(EnemyType)randomMq(0, ENEMY_DRACULA),
 			makeCoord(
 				randomMq(0, screenBounds.x),
 				randomMq(0, screenBounds.y)

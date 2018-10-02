@@ -40,7 +40,7 @@ extern int randomMq(int min, int max);
 extern double sineInc(double offset, double *sineInc, double speed, double magnitude);
 extern double cosInc(double offset, double *sineInc, double speed, double magnitude);
 extern double getAngle(Coord a, Coord b);
-extern Coord getStep(Coord a, Coord b, double speed, bool negativeMagic);
+extern Coord getStep(Coord a, Coord b, double speed);
 extern bool chance(int probability);
 
 #endif

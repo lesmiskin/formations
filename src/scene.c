@@ -63,55 +63,55 @@ void sceneAnimateFrame() {
 }
 
 void sceneGameFrame() {
-	for(int i=0; i < MAX_PROPS; i++) {
-		if(	props[i].type == PROP_COFFIN &&
-			!props[i].coffinOpened &&
-			inBounds(pos, makeSquareBounds(props[i].coord, 24))
-		){
-			//50% chance a vampire will come out.
-			if(chance(66)) {
-				spawnEnemy(ENEMY_DRACULA, props[i].coord);
-			}
-			props[i].coffinOpened = true;
-		}
-	}
+	// for(int i=0; i < MAX_PROPS; i++) {
+	// 	if(	props[i].type == PROP_COFFIN &&
+	// 		!props[i].coffinOpened &&
+	// 		inBounds(pos, makeSquareBounds(props[i].coord, 24))
+	// 	){
+	// 		//50% chance a vampire will come out.
+	// 		if(chance(66)) {
+	// 			spawnEnemy(ENEMY_DRACULA, props[i].coord);
+	// 		}
+	// 		props[i].coffinOpened = true;
+	// 	}
+	// }
 }
 
 void sceneRenderFrame() {
 	drawSprite(ground, makeCoord(320, 240));
-
-	for(int i=0; i < MAX_PROPS; i++) {
-		Sprite sprite;
-		char frameFile[25];
-
-		switch(props[i].type) {
-			case PROP_COFFIN:
-				if(props[i].coffinOpened) {
-					strcpy(frameFile, "coffin-open.png");
-				}else{
-					strcpy(frameFile, "coffin-closed.png");
-				}
-				break;
-//			case PROP_GRAVE:
-//				strcpy(frameFile, "grave.png");
-//				break;
-			case PROP_GRAVESTONE:
-				strcpy(frameFile, "gravestone.png");
-				break;
-			case PROP_GRAVESTONE_CROSS:
-				strcpy(frameFile, "gravestone-cross-grass.png");
-				break;
-		}
-
-		SDL_Texture *tex = getTexture(frameFile);
-
-		//Darken
-		SDL_SetTextureColorMod(tex, 164, 164, 192);
-
-		sprite = makeSprite(tex, zeroCoord(), SDL_FLIP_NONE);
-
-		drawSprite(sprite, props[i].coord);
-	}
+//
+// 	for(int i=0; i < MAX_PROPS; i++) {
+// 		Sprite sprite;
+// 		char frameFile[25];
+//
+// 		switch(props[i].type) {
+// 			case PROP_COFFIN:
+// 				if(props[i].coffinOpened) {
+// 					strcpy(frameFile, "coffin-open.png");
+// 				}else{
+// 					strcpy(frameFile, "coffin-closed.png");
+// 				}
+// 				break;
+// //			case PROP_GRAVE:
+// //				strcpy(frameFile, "grave.png");
+// //				break;
+// 			case PROP_GRAVESTONE:
+// 				strcpy(frameFile, "gravestone.png");
+// 				break;
+// 			case PROP_GRAVESTONE_CROSS:
+// 				strcpy(frameFile, "gravestone-cross-grass.png");
+// 				break;
+// 		}
+//
+// 		SDL_Texture *tex = getTexture(frameFile);
+//
+// 		//Darken
+// 		SDL_SetTextureColorMod(tex, 164, 164, 192);
+//
+// 		sprite = makeSprite(tex, zeroCoord(), SDL_FLIP_NONE);
+//
+// 		drawSprite(sprite, props[i].coord);
+// 	}
 }
 
 //Should happen each time the scene is shown.

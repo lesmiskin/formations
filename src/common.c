@@ -71,7 +71,7 @@ bool fileExists(const char *path) {
 }
 
 Coord zeroCoord() {
-    return makeCoord(0,0);
+	return makeCoord(0,0);
 }
 
 Coord makeCoord(double x, double y) {
@@ -98,20 +98,22 @@ int randomMq(int min, int max) {
 }
 
 double getAngle(Coord a, Coord b) {
+
     return atan2(b.y - a.y, b.x - a.x);
 }
 
-Coord getStep(Coord a, Coord b, double speed, bool negativeMagic) {
-    //Already there?
-    if(a.x == b.x && a.y == b.y) return zeroCoord();
+Coord getStep(Coord a, Coord b, double speed) {
+	if(abs(a.x-b.x)<.001 && abs(a.y-b.y)<.001) return zeroCoord(); // shortcut at goal
+	double angle = getAngle(a, b);
+	Coord step = makeCoord(
+					(cos(angle) * speed),
+					(sin(angle) * speed)
+	);
+	// partial step if close to goal
+	if(abs(a.x-b.x)<abs(step.x)) { step.x = b.x-a.x; }
+	if(abs(a.y-b.y)<abs(step.y)) { step.y = b.y-a.y; }
 
-    double angle = getAngle(a, b);
-
-    //Some magic going on here...
-    return makeCoord(
-            (cos(angle) * (negativeMagic ? -speed : speed)),
-            (sin(angle) * (negativeMagic ? -speed : speed))
-    );
+  return step;
 }
 
 bool chance(int probability) {

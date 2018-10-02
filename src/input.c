@@ -44,6 +44,15 @@ void pollInput(void) {
 					initEnemy();
 					initPlayer();
 				}
+        if (keypress == SDL_SCANCODE_Q) {
+          formation = 1;
+        }
+        if (keypress == SDL_SCANCODE_W) {
+          formation = 2;
+        }
+        if (keypress == SDL_SCANCODE_E) {
+          formation = 3;
+        }
 			}
 		}
 	}

@@ -69,6 +69,6 @@ void hudGameFrame(void) {
 }
 
 void hudRenderFrame(void) {
-	writeText(pos.x, makeCoord(50, 10));
-	writeFont("health", makeCoord(10, 10));
+	//writeText(pos.x, makeCoord(50, 10));
+	//writeFont("health", makeCoord(10, 10));
 }

@@ -11,18 +11,11 @@ typedef struct {
     double angle;
 } Shot;
 
-typedef enum {
-	ENEMY_CTHULU,
-	ENEMY_DIGGER,
-	ENEMY_WOLFMAN,
-	ENEMY_DRACULA,
-} EnemyType;
-
 extern void enemyGameFrame(void);
 extern void enemyRenderFrame(void);
 extern void initEnemy(void);
 extern void enemyAnimateFrame(void);
-extern void spawnEnemy(EnemyType type, Coord coord);
+extern void spawnEnemy(Coord coord);
 extern Shot shots[MAX_SHOTS];
 
 #endif
