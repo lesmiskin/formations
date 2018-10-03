@@ -25,5 +25,6 @@ extern void drawSprite(Sprite sprite, Coord origin);
 extern Coord getTextureSize(SDL_Texture *texture);
 extern Sprite makeFlippedSprite(char *textureName, SDL_RendererFlip flip);
 extern Sprite makeSimpleSprite(char *textureName);
+extern void drawLine(int r, int g, int b, Coord start, Coord end);
 
 #endif
