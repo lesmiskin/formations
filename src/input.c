@@ -44,6 +44,9 @@ void pollInput(void) {
 					initEnemy();
 					initPlayer();
 				}
+
+				if (keypress == SDL_SCANCODE_H)
+					showHomingLines = !showHomingLines;
 			}
 		}
 	}
