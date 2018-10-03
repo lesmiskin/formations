@@ -57,8 +57,8 @@ void playerGameFrame(Player *p) {
 	if(checkCommand(CMD_FORMATION_4)) p->formation = 3;
 
 	// rotate formation
-	if(checkCommand(CMD_ROTATE_FORM_CW)) p->goalAngle += 1;
-	if(checkCommand(CMD_ROTATE_FORM_CCW)) p->goalAngle -= 1;
+	if(checkCommand(CMD_ROTATE_FORM_CW)) p->goalAngle = degToRad(radToDeg(p->goalAngle)+1);
+	if(checkCommand(CMD_ROTATE_FORM_CCW)) p->goalAngle = degToRad(radToDeg(p->goalAngle)-1);
 
 	if (checkCommand(CMD_PLAYER_LEFT)) {
 		p->dir = false;
@@ -90,7 +90,9 @@ void playerSetFormationGoals(Player *p) {
 		}
 
 		// rotate it
-		g0 = makeCoord(g0.x*cos(degToRad(p->goalAngle))+g0.y*sin(degToRad(p->goalAngle)),g0.x*sin(degToRad(p->goalAngle))+g0.y*cos(degToRad(p->goalAngle)));
+		double s = sin(p->goalAngle);
+		double c = cos(p->goalAngle);
+		g0 = makeCoord(g0.x*c-g0.y*s,g0.x*s+g0.y*c);
 
 		// translate it
 		p->goals[i] = makeCoord(p->pos.x + g0.x,p->pos.y + g0.y);
