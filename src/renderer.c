@@ -69,6 +69,11 @@ void drawSprite(Sprite sprite, Coord origin) {
     drawSpriteFull(sprite, origin, 1, 0);
 }
 
+void drawLine(int r, int g, int b, Coord start, Coord end) {
+    SDL_SetRenderDrawColor(renderer, r, g, b, SDL_ALPHA_OPAQUE);
+    SDL_RenderDrawLine(renderer, start.x, start.y, end.x, end.y);
+}
+
 void initRenderer(void) {
     //Init SDL renderer
     renderer = SDL_CreateRenderer(

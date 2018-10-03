@@ -15,6 +15,7 @@ const int IDLE_HZ = 1000 / 4;
 const double ENEMY_SPEED = 0.5;
 const double CHAR_BOUNDS = 15;
 const double DIR_CHANGE = 250;
+bool showHomingLines = false;
 
 bool onScreen(Coord coord, double threshold) {
 	return inBounds(coord, makeRect(
@@ -157,6 +158,11 @@ void enemyRenderFrame(void){
 		} else{
 			strcpy(frameFile, "werewolf-walk-%02d.png");
 			flip = enemies[i].coord.x > plr->pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+		}
+
+		// Draw line showing where the enemy is homing to.
+		if(showHomingLines){
+			drawLine(0,128,0, enemies[i].coord, plr->goals[enemies[i].goal]);
 		}
 
 		sprintf(frameFile, frameFile, enemies[i].animInc);

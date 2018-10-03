@@ -14,5 +14,6 @@ extern void enemyRenderFrame();
 extern void initEnemy();
 extern void enemyAnimateFrame();
 extern void spawnEnemy(Coord coord);
+extern bool showHomingLines;
 
 #endif
