@@ -7,7 +7,7 @@
 #include "player.h"
 #include "assets.h"
 #define M_PI 3.14159265358979323846264338327950288
-static const double RADIAN_CIRCLE = 6.28;
+static const double RADIAN_CIRCLE = 2 * M_PI;
 
 GameMode currentMode = MODE_GAME;
 
