@@ -112,5 +112,6 @@ void playerGameFrame(Player *p) {
 
 void initPlayer() {
 	plr = makePlayer_leaks();
+	playerSetFormationGoals(plr);
 	plr->squad = makeSquad_leaks();
 }

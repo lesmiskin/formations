@@ -97,22 +97,25 @@ void enemyGameFrame(void) {
 				heading = deriveCoord(enemies[i].coord, homeStep.x, homeStep.y);
 			}
 
-			//Loop through all enemies (plus player), and see if we would collide.
-			for(int j=-1; j < MAX_ENEMY; j++) {
-				//Player check.
-				Coord compare = j == -1 ? plr->pos : enemies[j].coord;
+			// if you would collide with player, don't move
+			if(inBounds(heading, makeSquareBounds(plr->pos, CHAR_BOUNDS))) {
+				skipMove = true;
+				break;
+			}
 
-				//Don't collide with ourselves :p
-				if(j > -1 && i == j) continue;
+			// loop through all squad members, if we would collide with one, don't Move
+			for(int j=0; j<plr->squad->size; j++) {
+				if(inBounds(heading, makeSquareBounds(plr->squad->members[j].coord, CHAR_BOUNDS))) {
+					skipMove = true;
+					break;
+				}
+			}
 
-				//Our heading will put us in the bounds of an enemy. Decide what to do.
-				if(inBounds(heading, makeSquareBounds(compare, CHAR_BOUNDS))) {
-					//If we're touching the player - stay where we are.
-					if(j == -1) {
-						skipMove = true;
-						break;
-					}
+			//Loop through all enemies, and roam if we would collide.
+			for(int j=0; j<MAX_ENEMY; j++) {
+				if(i == j) continue; //Don't collide with ourselves!
 
+				if(inBounds(heading, makeSquareBounds(enemies[j].coord, CHAR_BOUNDS))) {
 					//Only move around 5% of the time (more realistic)
 					//TODO: Change to delay?
 					if(chance(75)) {
@@ -197,15 +200,15 @@ void enemyRenderFrame(void){
 		isUp = enemies[i].coord.y > plr->pos.y;
 		isDown = enemies[i].coord.y < plr->pos.y;
 
-		char frameFile[25];
+		char frameFile[28];
 
 		// Choose graphic based on type.
 		if(isUp) {
-			strcpy(frameFile, "werewolf-walk-up-%02d.png");
+			strcpy(frameFile, "dracula-walk-up-%02d.png");
 		} else if(isDown) {
-			strcpy(frameFile, "werewolf-walk-down-%02d.png");
+			strcpy(frameFile, "dracula-walk-down-%02d.png");
 		} else{
-			strcpy(frameFile, "werewolf-walk-%02d.png");
+			strcpy(frameFile, "dracula-walk-%02d.png");
 			flip = enemies[i].coord.x > plr->pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 		}
 
