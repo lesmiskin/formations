@@ -4,6 +4,7 @@
 #include "player.h"
 #include "renderer.h"
 #include "enemy.h"
+#include "input.h"
 
 static long lastIdleTime;
 
@@ -51,23 +52,50 @@ void squadSeekPosition(Squad *squad) {
       Coord step = zeroCoord();
       if(ds[i][squad->members[i].goal]>11-squad->attr->discipline) step = getStep(squad->members[i].coord, plr->goals[squad->members[i].goal], ENEMY_SPEED);
   		Coord heading = deriveCoord(squad->members[i].coord, step.x, step.y);
-  		squad->members[i].coord = heading;
+
+      // if you would collide with an enemy, don't Move
+      bool skipMove = false;
+      for(int j=0; j<MAX_ENEMY; j++) {
+        if(inBounds(heading, makeSquareBounds(enemies[j].coord, CHAR_BOUNDS))) {
+          skipMove = true;
+          break;
+        }
+      }
+
+      if(!skipMove) squad->members[i].coord = heading;
     }
     free(goals);
   }
 }
 
+void push(Coord origin, Coord atk, int idx) {
+  Coord hit = deriveCoord(origin, atk.x, atk.y);
+  for(int i=0; i<MAX_ENEMY; i++) {
+    if(i == idx) continue;
+    if(inBounds(hit,makeSquareBounds(enemies[i].coord,CHAR_BOUNDS))) {
+      Coord coord = deriveCoord(enemies[i].coord, atk.x, atk.y);
+      push(enemies[i].coord,atk,i);
+      enemies[i].coord = coord;
+    }
+  }
+}
+
+void squadSpecial(Squad *squad) {
+  for(int i=0;i<squad->size;i++) {
+    Coord atk = getStep(squad->members[i].coord,plr->goals[squad->members[i].goal],3);
+    push(squad->members[i].coord,atk,-1);
+  }
+}
+
 void squadGameFrame(Squad *squad) {
   squadSeekPosition(squad);
+  if(checkCommand(CMD_SQUAD_SPECIAL)) squadSpecial(squad);
 }
 
 void squadAnimateFrame(Squad *squad) {
 	//Animate the enemies
 	for(int i=0; i < squad->size; i++) {
 		if(squad->members[i].coord.x == 0) continue;
-
-		//Slight hack - we want to move the enemies in sync with their animation.
-
 		//Increment animations.
 		if(squad->members[i].animInc < 4) {
 			squad->members[i].animInc++;
@@ -120,7 +148,7 @@ Squad* makeSquad_leaks() {
 
   SquadAttributes *attr = malloc(sizeof(SquadAttributes));
   if(!attr) return NULL;
-  attr->discipline = 2;
+  attr->discipline = 10;
   squad->attr = attr;
 
   Enemy *members = malloc(sizeof(Enemy)*squad->size);

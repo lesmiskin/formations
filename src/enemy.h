@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#define MAX_ENEMY 0
+#define MAX_ENEMY 30
 
 typedef struct {
 	Coord coord;

@@ -23,5 +23,6 @@ extern void squadAnimateFrame();
 extern void squadRenderFrame();
 extern Squad* makeSquad_leaks();
 extern void freeSquad(Squad*);
+extern void push(Coord, Coord, int);
 
 #endif

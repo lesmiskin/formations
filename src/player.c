@@ -66,7 +66,14 @@ void playerRenderFrame(Player *p) {
 }
 
 void playerGameFrame(Player *p) {
-	p->walking = false;
+	if(checkCommand(CMD_FORMATION_1)) plr->formation = 1;
+	if(checkCommand(CMD_FORMATION_2)) plr->formation = 2;
+	if(checkCommand(CMD_FORMATION_3)) plr->formation = 3;
+	if(checkCommand(CMD_FORMATION_4)) plr->formation = 3;
+
+	// rotate formation
+	if(checkCommand(CMD_ROTATE_FORM_CW)) p->goalAngle = degToRad(radToDeg(p->goalAngle)+2);
+	if(checkCommand(CMD_ROTATE_FORM_CCW)) p->goalAngle = degToRad(radToDeg(p->goalAngle)-2);
 
 	// We still turn the player sprite where we can, even if we're hard
 	// up against a screen bound.
@@ -81,10 +88,7 @@ void playerGameFrame(Player *p) {
 	p->pos.x = fmin(screenBounds.x-PC_BOUNDS/2,fmax(0+PC_BOUNDS/2,heading.x));
 	p->pos.y = fmin(screenBounds.y-PC_BOUNDS/2,fmax(0+PC_BOUNDS/2,heading.y));
 
-	// rotate formation
-	if(checkCommand(CMD_ROTATE_FORM_CW)) p->goalAngle = degToRad(radToDeg(p->goalAngle)+1);
-	if(checkCommand(CMD_ROTATE_FORM_CCW)) p->goalAngle = degToRad(radToDeg(p->goalAngle)-1);
-
+	p->walking = false;
 	if (checkCommand(CMD_PLAYER_LEFT)) {
 		p->dir = false;
 		p->walking = true;

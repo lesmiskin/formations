@@ -138,7 +138,6 @@ double getAngle(Coord a, Coord b) {
 }
 
 Coord getStep(Coord a, Coord b, double speed) {
-	// if(abs(a.x-b.x)<.001 && abs(a.y-b.y)<.001) return zeroCoord(); // shortcut at goal
 	double angle = getAngle(a, b);
 	Coord step = makeCoord(
 					(cos(angle) * speed),
