@@ -106,7 +106,6 @@ int randomMq(int min, int max) {
 }
 
 double getAngle(Coord a, Coord b) {
-
     return atan2(b.y - a.y, b.x - a.x);
 }
 
@@ -143,26 +142,32 @@ bool inBounds(Coord point, Rect area) {
 }
 
 Rect makeBounds(Coord origin, double width, double height) {
-    Rect bounds = {
-            origin.x - (width / 2),
-            origin.y - (height / 2),
-            origin.x + (width / 2),
-            origin.y + (height / 2)
-    };
-    return bounds;
+	Rect bounds = {
+    origin.x - (width / 2),
+    origin.y - (height / 2),
+    origin.x + (width / 2),
+    origin.y + (height / 2)
+  };
+  return bounds;
 }
 
 Rect makeSquareBounds(Coord origin, double size) {
-    return makeBounds(origin, size, size);
+  return makeBounds(origin, size, size);
+}
+
+Coord mergeCoord(Coord original, Coord derive) {
+  original.x += derive.x;
+  original.y += derive.y;
+  return original;
 }
 
 Coord deriveCoord(Coord original, double xOffset, double yOffset) {
-    original.x += xOffset;
-    original.y += yOffset;
-    return original;
+  original.x += xOffset;
+  original.y += yOffset;
+  return original;
 }
 
 Rect makeRect(double x, double y, double width, double height) {
-    Rect rect = { x, y, width, height };
-    return rect;
+  Rect rect = { x, y, width, height };
+  return rect;
 }

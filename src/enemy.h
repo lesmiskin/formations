@@ -7,6 +7,9 @@ typedef struct {
 	Coord coord;
 	int goal;
 	int animInc;
+	bool isRoaming;
+	Dir roamDir;
+	long lastRoamTime;
 } Enemy;
 
 extern const double ENEMY_SPEED;
@@ -17,7 +20,7 @@ extern void enemyGameFrame();
 extern void enemyRenderFrame();
 extern void initEnemy();
 extern void enemyAnimateFrame();
-extern void spawnEnemy(Coord coord);
+extern void spawnEnemy();
 extern bool showHomingLines;
 
 #endif

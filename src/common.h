@@ -5,12 +5,23 @@
 #include "mysdl.h"
 
 typedef struct {
-    double x, y;
+  double x, y;
 } Coord;
 
 typedef enum {
 	MODE_GAME,
 } GameMode;
+
+typedef enum {
+	DIR_NORTH,
+	DIR_NORTHEAST,
+	DIR_EAST,
+	DIR_SOUTHEAST,
+	DIR_SOUTH,
+	DIR_SOUTHWEST,
+	DIR_WEST,
+	DIR_NORTHWEST,
+} Dir;
 
 typedef struct {
 	double x, y;
@@ -29,6 +40,7 @@ extern void changeMode(GameMode newMode);
 extern SDL_Window *window;
 extern bool running;
 extern Coord makeCoord(double x, double y);
+extern Coord mergeCoord(Coord original, Coord derive);
 extern Coord deriveCoord(Coord original, double xOffset, double yOffset);
 extern Coord zeroCoord();
 extern bool timer(long *lastTime, double hertz);

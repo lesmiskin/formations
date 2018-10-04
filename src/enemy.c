@@ -5,7 +5,7 @@
 #include "time.h"
 #include "hud.h"
 
-#define MAX_ENEMY 0
+#define MAX_ENEMY 8
 #define WALK_FRAMES 4
 Enemy enemies[MAX_ENEMY];
 long lastIdleTime;
@@ -44,76 +44,125 @@ bool wouldTouchEnemy(Coord a, int selfIndex, bool includePlayer) {
 	return false;
 }
 
-// typedef struct {
-// 	double d;
-// 	int i, j;
-// } Glp;
+Coord calcDirOffset(Coord original, Dir dir) {
+	Coord offset = zeroCoord();
+	switch(dir) {
+		case DIR_NORTH:
+			offset = makeCoord(0, -ENEMY_SPEED);
+			break;
+		case DIR_NORTHEAST:
+			offset = makeCoord(ENEMY_SPEED, -ENEMY_SPEED);
+			break;
+		case DIR_EAST:
+			offset = makeCoord(ENEMY_SPEED, 0);
+			break;
+		case DIR_SOUTHEAST:
+			offset = makeCoord(-ENEMY_SPEED, ENEMY_SPEED);
+			break;
+		case DIR_SOUTH:
+			offset = makeCoord(0, ENEMY_SPEED);
+			break;
+		case DIR_SOUTHWEST:
+			offset = makeCoord(-ENEMY_SPEED, ENEMY_SPEED);
+			break;
+		case DIR_WEST:
+			offset = makeCoord(-ENEMY_SPEED, 0);
+			break;
+		case DIR_NORTHWEST:
+			offset = makeCoord(-ENEMY_SPEED, -ENEMY_SPEED);
+			break;
+	}
+	return mergeCoord(original, offset);
+}
 
 void enemyGameFrame(void) {
-	bool ts[8];
-	memset(ts, true, sizeof(ts));
-
-	// // greatest least path first
-	// bool es[MAX_ENEMY];
-	// memset(es, true, sizeof(es));
-	// for(int k=0; k<MAX_ENEMY; k++) {
-	// 	Glp glp = {0, -1, -1};
-		double ds[MAX_ENEMY][8];
-		for(int i=0;i<MAX_ENEMY;i++) {
-	// 		if(es[i] != true) { continue; }
-	// 		int d0 = enemies[i].goal == -1 ? 999999 : calcDistance(goals[enemies[i].goal],enemies[i].coord);
-	// 		int j0 = -1;
-			for(int j=0;j<8;j++) {
-	// 			if(ts[j] != true) { continue; }
-				ds[i][j] = calcDistance(plr->goals[j],enemies[i].coord);
-	// 			if(ds[i][j] < d0) {
-	// 				d0 = ds[i][j];
-	// 				j0 = j;
-	// 			}
-			}
-	// 		if(d0 > glp.d) {
-	// 			glp.d = d0;
-	// 			glp.i = i;
-	// 			glp.j = j0;
-	// 		}
-		}
-	// 	ts[glp.j] = false;
-	// 	es[glp.i] = false;
-	// 	enemies[glp.i].goal = glp.j;
-	// }
-
 	for(int i=0; i < MAX_ENEMY; i++) {
-		// greedy with shortcut
-		int j0;
-		float d0 = 999999;
-		for(int j=0; j < 8; j++) {
-			if(ts[j] != true) { continue; } // shortcut already taken goals
-			if(ds[i][j] < d0) {
-				d0 = ds[i][j];
-				j0 = j;
+			if(enemies[i].coord.x == 0) continue;
+
+			Coord heading;
+			bool nowRoaming = false;
+			bool skipMove = false;
+
+			//Turn off roaming if enough time has elapsed.
+			if(enemies[i].isRoaming && isDue(clock(), enemies[i].lastRoamTime, DIR_CHANGE)) {
+				enemies[i].isRoaming = false;
 			}
-		}
-		ts[j0] = false;
-		enemies[i].goal = j0;
 
-		// home towards your goal
-		Coord step = getStep(enemies[i].coord, plr->goals[enemies[i].goal], ENEMY_SPEED);
-		Coord heading = deriveCoord(enemies[i].coord, step.x, step.y);
-
-		//Loop through all enemies (plus player), and see if we would collide.
-		for(int j=-1; j < MAX_ENEMY; j++) {
-			//Player check.
-			Coord compare = j == -1 ? plr->pos : enemies[j].coord;
-
-			//Don't collide with ourselves
-			if(j > -1 && i == j) continue;
-
-			//Our heading will put us in the bounds of an enemy. Decide what to do.
-			if(inBounds(heading, makeSquareBounds(compare, CHAR_BOUNDS))) {
-				// TODO: what do!?
+			//If we're roaming - head in that direction.
+			if(enemies[i].isRoaming) {
+				heading = calcDirOffset(enemies[i].coord, enemies[i].roamDir);
+			//Otherwise - home towards player.
+			}else{
+				Coord homeStep = getStep(enemies[i].coord, plr->pos, ENEMY_SPEED);
+				heading = deriveCoord(enemies[i].coord, homeStep.x, homeStep.y);
 			}
-		}
-		enemies[i].coord = heading;
+
+			//Loop through all enemies (plus player), and see if we would collide.
+			for(int j=-1; j < MAX_ENEMY; j++) {
+				//Player check.
+				Coord compare = j == -1 ? plr->pos : enemies[j].coord;
+
+				//Don't collide with ourselves :p
+				if(j > -1 && i == j) continue;
+
+				//Our heading will put us in the bounds of an enemy. Decide what to do.
+				if(inBounds(heading, makeSquareBounds(compare, CHAR_BOUNDS))) {
+					//If we're touching the player - stay where we are.
+					if(j == -1) {
+						skipMove = true;
+						break;
+					}
+
+					//Only move around 5% of the time (more realistic)
+					//TODO: Change to delay?
+					if(chance(75)) {
+						skipMove = true;
+						continue;
+					}
+
+					//Try roaming in some other directions to free ourselves.
+					bool triedDirs[8] = { false, false, false, false, false, false, false, false };
+					Coord roamTarget;
+					int tryDir = 0;
+
+					//Keep trying in NSEW dirs until we've exhausted our attempts.
+					while(!triedDirs[0] || !triedDirs[1] || !triedDirs[2] || !triedDirs[3] || !triedDirs[4] || !triedDirs[5] || !triedDirs[6] || !triedDirs[7]) {
+						//Pick a dir we haven't tried yet.
+						do { tryDir = randomMq(0, 7); }
+						while(triedDirs[tryDir]);
+
+						triedDirs[tryDir] = true;
+
+						//Would we touch anyone by traveling in this direction?
+						roamTarget = calcDirOffset(enemies[i].coord, (Dir)tryDir);
+						if(!wouldTouchEnemy(roamTarget, i, false)) {
+							enemies[i].roamDir = (Dir)tryDir;
+							enemies[i].lastRoamTime = clock();
+							enemies[i].isRoaming = true;
+							nowRoaming = true;
+							break;
+						}
+					}
+
+					if(nowRoaming) {
+						break;
+					}else{
+						skipMove = true;
+						break;
+					}
+				}
+			}
+
+			if(!skipMove) {
+				//Move in the direction we're idly roaming in.
+				if(enemies[i].isRoaming) {
+					enemies[i].coord = calcDirOffset(enemies[i].coord, enemies[i].roamDir);
+
+				//Otherwise, home in on player.
+				}else{
+					enemies[i].coord = heading;
+				}
+			}
 	}
 }
 
@@ -166,25 +215,26 @@ void enemyRenderFrame(void){
 	}
 }
 
-void spawnEnemy(Coord coord) {
-	if(enemyCount == MAX_ENEMY) return;
+Enemy* makeEnemy_leaks() {
+	Enemy *enemy = malloc(sizeof(Enemy));
+	enemy->coord = makeCoord(0,0);
+	enemy->isRoaming = false;
+	enemy->animInc = randomMq(1,4);
+	return enemy;
+}
 
-	Enemy e = {
-		coord,
-		-1,
-		randomMq(1,4)
-	};
-	enemies[enemyCount++] = e;
+void spawnEnemy() {
+	if(enemyCount == MAX_ENEMY) return;
+	Enemy *enemy = makeEnemy_leaks();
+	if(enemy) {
+		enemy->coord = makeCoord(randomMq(0, screenBounds.x),randomMq(0, screenBounds.y));
+		enemies[enemyCount++] = *enemy;
+		free(enemy);
+	}
 }
 
 void initEnemy() {
-	//Make the enemies
 	for(int i=0; i < INITIAL_ENEMIES; i++) {
-		spawnEnemy(
-			makeCoord(
-				randomMq(0, screenBounds.x),
-				randomMq(0, screenBounds.y)
-			)
-		);
+		spawnEnemy();
 	}
 }
