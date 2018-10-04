@@ -1,6 +1,8 @@
 #ifndef PLAYER_H
 #define PLAYER_H
 
+#include "squad.h"
+
 typedef struct {
   Coord pos;
   int formation;
@@ -9,13 +11,13 @@ typedef struct {
   bool dir;
   bool walking;
   int walkInc;
+  Squad *squad;
 } Player;
 
 extern Player *plr;
+
 extern void playerGameFrame(Player*);
 extern void playerRenderFrame(Player*);
-extern void playerShadowFrame(Player*);
-extern void playerSetFormationGoals(Player*);
 extern void playerAnimateFrame(Player*);
 extern void initPlayer();
 

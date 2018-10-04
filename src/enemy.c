@@ -5,7 +5,7 @@
 #include "time.h"
 #include "hud.h"
 
-#define MAX_ENEMY 8
+#define MAX_ENEMY 0
 #define WALK_FRAMES 4
 Enemy enemies[MAX_ENEMY];
 long lastIdleTime;
@@ -160,11 +160,6 @@ void enemyRenderFrame(void){
 			flip = enemies[i].coord.x > plr->pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 		}
 
-		// Draw line showing where the enemy is homing to.
-		if(showHomingLines){
-			drawLine(0,128,0, enemies[i].coord, plr->goals[enemies[i].goal]);
-		}
-
 		sprintf(frameFile, frameFile, enemies[i].animInc);
 		sprite = makeFlippedSprite(frameFile, flip);
 		drawSprite(sprite, enemies[i].coord);
@@ -182,7 +177,7 @@ void spawnEnemy(Coord coord) {
 	enemies[enemyCount++] = e;
 }
 
-void initEnemy(void) {
+void initEnemy() {
 	//Make the enemies
 	for(int i=0; i < INITIAL_ENEMIES; i++) {
 		spawnEnemy(
