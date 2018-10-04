@@ -93,11 +93,16 @@ void enemyGameFrame(void) {
 				break;
 			}
 
-			// if you would collide with a squad member, don't Move
-			for(int j=0; j<plr->squad->size; j++) {
-				if(inBounds(heading, makeSquareBounds(plr->squad->members[j].coord, CHAR_BOUNDS))) {
-					skipMove = true;
-					break;
+			// if you would collide with a squad member push instead of moving
+			skipMove = false;
+			if(chance(25)) {
+				for(int j=0; j<plr->squad->size; j++) {
+					if(inBounds(heading, makeSquareBounds(plr->squad->members[j].coord, CHAR_BOUNDS))) {
+						skipMove = true;
+	          Coord atk = getStep(enemies[i].coord,plr->pos,1);
+	          push(enemies[i].coord,atk,&enemies[i]);
+	          break;
+					}
 				}
 			}
 

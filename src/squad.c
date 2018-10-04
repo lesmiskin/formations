@@ -50,15 +50,20 @@ void squadSeekPosition(Squad *squad) {
       squad->members[i].goal = goals[i];
   		// home towards your goal
       Coord step = zeroCoord();
-      if(ds[i][squad->members[i].goal]>11-squad->attr->discipline) step = getStep(squad->members[i].coord, plr->goals[squad->members[i].goal], ENEMY_SPEED);
+      if(ds[i][squad->members[i].goal]>11-squad->attr->discipline)
+        step = getStep(squad->members[i].coord, plr->goals[squad->members[i].goal], ENEMY_SPEED);
   		Coord heading = deriveCoord(squad->members[i].coord, step.x, step.y);
 
-      // if you would collide with an enemy, don't Move
+      // if you would collide with an enemy, try to push instead of moving
       bool skipMove = false;
-      for(int j=0; j<MAX_ENEMY; j++) {
-        if(inBounds(heading, makeSquareBounds(enemies[j].coord, CHAR_BOUNDS))) {
-          skipMove = true;
-          break;
+      if(chance(100)) {
+        for(int j=0; j<MAX_ENEMY; j++) {
+          if(inBounds(heading, makeSquareBounds(enemies[j].coord, CHAR_BOUNDS))) {
+            skipMove = true;
+            Coord atk = getStep(squad->members[i].coord,plr->goals[squad->members[i].goal],3);
+            push(squad->members[i].coord,atk,&squad->members[i]);
+            break;
+          }
         }
       }
 
@@ -68,24 +73,27 @@ void squadSeekPosition(Squad *squad) {
   }
 }
 
-void push(Coord origin, Coord atk, int idx) {
+void push(Coord origin, Coord atk, Enemy *self) {
   Coord hit = deriveCoord(origin, atk.x, atk.y);
   for(int i=0; i<MAX_ENEMY; i++) {
-    if(i == idx) continue;
+    if(self == &enemies[i]) continue;
     if(inBounds(hit,makeSquareBounds(enemies[i].coord,CHAR_BOUNDS))) {
       Coord coord = deriveCoord(enemies[i].coord, atk.x, atk.y);
-      push(enemies[i].coord,atk,i);
+      push(enemies[i].coord,atk,&enemies[i]);
       enemies[i].coord = coord;
+    }
+  }
+  for(int i=0;i<plr->squad->size;i++) {
+    if(self == &plr->squad->members[i]) continue;
+    if(inBounds(hit,makeSquareBounds(plr->squad->members[i].coord,CHAR_BOUNDS))) {
+      Coord coord = deriveCoord(plr->squad->members[i].coord, atk.x, atk.y);
+      // push(plr->squad->members[i].coord,atk,&plr->squad->members[i]);
+      plr->squad->members[i].coord = coord;
     }
   }
 }
 
-void squadSpecial(Squad *squad) {
-  for(int i=0;i<squad->size;i++) {
-    Coord atk = getStep(squad->members[i].coord,plr->goals[squad->members[i].goal],3);
-    push(squad->members[i].coord,atk,-1);
-  }
-}
+void squadSpecial(Squad *squad) {}
 
 void squadGameFrame(Squad *squad) {
   squadSeekPosition(squad);
@@ -141,7 +149,7 @@ void squadRenderFrame(Squad *squad) {
 	}
 }
 
-Squad* makeSquad_leaks() {
+Squad* makeSquad__leaks() {
   Squad *squad = malloc(sizeof(Squad));
   if (!squad) return NULL;
   squad->size = 8;

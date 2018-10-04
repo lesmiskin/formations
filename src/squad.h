@@ -21,8 +21,8 @@ typedef enum {
 extern void squadGameFrame();
 extern void squadAnimateFrame();
 extern void squadRenderFrame();
-extern Squad* makeSquad_leaks();
+extern Squad* makeSquad__leaks();
 extern void freeSquad(Squad*);
-extern void push(Coord, Coord, int);
+extern void push(Coord, Coord, Enemy*);
 
 #endif

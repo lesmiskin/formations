@@ -38,7 +38,7 @@ void playerSetFormationGoals(Player *p) {
 	}
 }
 
-Player* makePlayer_leaks() {
+Player* makePlayer__leaks() {
 	plr = malloc(sizeof(Player));
 	plr->pos = makeCoord(25,50);
 	plr->health = 10;
@@ -108,7 +108,7 @@ void playerGameFrame(Player *p) {
 }
 
 void initPlayer() {
-	plr = makePlayer_leaks();
+	plr = makePlayer__leaks();
 	playerSetFormationGoals(plr);
-	plr->squad = makeSquad_leaks();
+	plr->squad = makeSquad__leaks();
 }
