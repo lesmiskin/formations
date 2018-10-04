@@ -3,8 +3,11 @@
 
 #include "squad.h"
 
+extern const double PC_BOUNDS;
+
 typedef struct {
   Coord pos;
+  int health;
   int formation;
   Coord goals[8];
   double goalAngle;

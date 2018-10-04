@@ -28,18 +28,20 @@ typedef struct {
 	int width, height;
 } Rect;
 
-extern double calcDistance(Coord a, Coord b);
-extern Rect makeRect(double x, double y, double width, double height);
+extern double calcDistance(Coord, Coord);
 extern double degToRad(double);
 extern double radToDeg(double);
-extern bool inBounds(Coord point, Rect area);
-extern Rect makeBounds(Coord origin, double width, double height);
-extern Rect makeSquareBounds(Coord origin, double size);
+extern Rect makeRect(double, double, double, double);
+extern Rect makeBounds(Coord, double, double);
+extern Rect makeSquareBounds(Coord, double);
+extern bool inBounds(Coord, Rect);
+extern bool rectInBounds(Rect, Rect);
 extern GameMode currentMode;
-extern void changeMode(GameMode newMode);
+extern void changeMode(GameMode);
 extern SDL_Window *window;
 extern bool running;
 extern Coord makeCoord(double x, double y);
+extern Coord makeSafeCoord(double);
 extern Coord mergeCoord(Coord original, Coord derive);
 extern Coord deriveCoord(Coord original, double xOffset, double yOffset);
 extern Coord zeroCoord();

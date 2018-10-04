@@ -102,12 +102,12 @@ int main()  {
 
     //Animation frame
     if(timer(&lastAnimFrameTime, ANIMATION_HZ)) {
+      enemyAnimateFrame();
       sceneAnimateFrame();
       playerAnimateFrame(plr);
     }
 
     //Renderer frame
-    double renderFPS;
     if(timer(&lastRenderFrameTime, RENDER_HZ)) {
       sceneRenderFrame();
       playerRenderFrame(plr);
