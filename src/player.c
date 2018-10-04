@@ -51,7 +51,6 @@ Player* makePlayer_leaks() {
 void playerAnimateFrame(Player *p) {
 	if(!p->walking) return;
 	p->walkInc = (p->walkInc == WALK_FRAMES) ? 1 : p->walkInc + 1;
-	squadAnimateFrame(p->squad);
 }
 
 void playerRenderFrame(Player *p) {

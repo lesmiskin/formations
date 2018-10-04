@@ -8,7 +8,7 @@
 #define MAX_ENEMY 8
 #define WALK_FRAMES 4
 Enemy enemies[MAX_ENEMY];
-long lastIdleTime;
+static long lastIdleTime;
 int enemyCount = 0;
 const int INITIAL_ENEMIES = 50;
 const int IDLE_HZ = 1000 / 4;

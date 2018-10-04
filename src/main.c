@@ -98,6 +98,7 @@ int main()  {
 
     //Self-managing animations
     enemyAnimateFrame();
+	  squadAnimateFrame(plr->squad);
 
     //Animation frame
     if(timer(&lastAnimFrameTime, ANIMATION_HZ)) {

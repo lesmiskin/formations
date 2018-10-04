@@ -5,7 +5,7 @@
 #include "renderer.h"
 #include "enemy.h"
 
-long lastIdleTime;
+static long lastIdleTime;
 
 int* aiGreedy__leaks(double *values, int nActors, int nTargets, GreedyGoal goal) {
   int *takenBy = malloc(sizeof(int)*nActors);
