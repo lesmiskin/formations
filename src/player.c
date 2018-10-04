@@ -81,12 +81,6 @@ void playerGameFrame(Player *p) {
 	p->pos.x = fmin(screenBounds.x-PC_BOUNDS/2,fmax(0+PC_BOUNDS/2,heading.x));
 	p->pos.y = fmin(screenBounds.y-PC_BOUNDS/2,fmax(0+PC_BOUNDS/2,heading.y));
 
-	// set formation
-	if(checkCommand(CMD_FORMATION_1)) p->formation = 1;
-	if(checkCommand(CMD_FORMATION_2)) p->formation = 2;
-	if(checkCommand(CMD_FORMATION_3)) p->formation = 3;
-	if(checkCommand(CMD_FORMATION_4)) p->formation = 3;
-
 	// rotate formation
 	if(checkCommand(CMD_ROTATE_FORM_CW)) p->goalAngle = degToRad(radToDeg(p->goalAngle)+1);
 	if(checkCommand(CMD_ROTATE_FORM_CCW)) p->goalAngle = degToRad(radToDeg(p->goalAngle)-1);

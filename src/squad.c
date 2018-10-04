@@ -48,7 +48,8 @@ void squadSeekPosition(Squad *squad) {
   	for(int i=0; i < squad->size; i++) {
       squad->members[i].goal = goals[i];
   		// home towards your goal
-  		Coord step = getStep(squad->members[i].coord, plr->goals[squad->members[i].goal], ENEMY_SPEED);
+      Coord step = zeroCoord();
+      if(ds[i][squad->members[i].goal]>11-squad->attr->discipline) step = getStep(squad->members[i].coord, plr->goals[squad->members[i].goal], ENEMY_SPEED);
   		Coord heading = deriveCoord(squad->members[i].coord, step.x, step.y);
   		squad->members[i].coord = heading;
     }
@@ -61,8 +62,6 @@ void squadGameFrame(Squad *squad) {
 }
 
 void squadAnimateFrame(Squad *squad) {
-  if(!timer(&lastIdleTime, IDLE_HZ)) return;
-
 	//Animate the enemies
 	for(int i=0; i < squad->size; i++) {
 		if(squad->members[i].coord.x == 0) continue;
@@ -121,7 +120,7 @@ Squad* makeSquad_leaks() {
 
   SquadAttributes *attr = malloc(sizeof(SquadAttributes));
   if(!attr) return NULL;
-  attr->discipline = 10;
+  attr->discipline = 2;
   squad->attr = attr;
 
   Enemy *members = malloc(sizeof(Enemy)*squad->size);
