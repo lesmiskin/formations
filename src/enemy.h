@@ -3,6 +3,8 @@
 
 #include "common.h"
 
+#define MAX_ENEMY 30
+
 typedef struct {
 	Coord coord;
 	int goal;
@@ -16,11 +18,13 @@ extern const double ENEMY_SPEED;
 extern const double CHAR_BOUNDS;
 extern const int IDLE_HZ;
 
+extern Enemy enemies[MAX_ENEMY];
+
 extern void enemyGameFrame();
 extern void enemyRenderFrame();
 extern void initEnemy();
 extern void enemyAnimateFrame();
-extern void spawnEnemy();
+extern void spawnEnemy(int);
 extern bool showHomingLines;
 
 #endif

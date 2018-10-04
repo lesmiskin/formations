@@ -5,26 +5,14 @@
 #include "time.h"
 #include "hud.h"
 
-#define MAX_ENEMY 8
 #define WALK_FRAMES 4
 Enemy enemies[MAX_ENEMY];
 long lastIdleTime;
-int enemyCount = 0;
-const int INITIAL_ENEMIES = 50;
 const int IDLE_HZ = 1000 / 4;
 const double ENEMY_SPEED = 0.5;
 const double CHAR_BOUNDS = 15;
 const double DIR_CHANGE = 250;
 bool showHomingLines = false;
-
-bool onScreen(Coord coord, double threshold) {
-	return inBounds(coord, makeRect(
-			0 + threshold,
-			0 + threshold,
-			screenBounds.x - (threshold),
-			screenBounds.y - (threshold)
-	));
-}
 
 bool wouldTouchEnemy(Coord a, int selfIndex, bool includePlayer) {
 	//Check player
@@ -35,7 +23,7 @@ bool wouldTouchEnemy(Coord a, int selfIndex, bool includePlayer) {
 	}
 
 	//Check enemies.
-	for(int i=0; i < MAX_ENEMY; i++) {
+	for(int i=0; i<MAX_ENEMY; i++) {
 		if(selfIndex != i && inBounds(a, makeSquareBounds(enemies[i].coord, CHAR_BOUNDS))) {
 			return true;
 		}
@@ -76,7 +64,7 @@ Coord calcDirOffset(Coord original, Dir dir) {
 }
 
 void enemyGameFrame(void) {
-	for(int i=0; i < MAX_ENEMY; i++) {
+	for(int i=0; i<MAX_ENEMY; i++) {
 			if(enemies[i].coord.x == 0) continue;
 
 			Coord heading;
@@ -97,13 +85,15 @@ void enemyGameFrame(void) {
 				heading = deriveCoord(enemies[i].coord, homeStep.x, homeStep.y);
 			}
 
-			// if you would collide with player, don't move
+			// if you would collide with player, respawn
 			if(inBounds(heading, makeSquareBounds(plr->pos, CHAR_BOUNDS))) {
-				skipMove = true;
+				plr->health -= 1;
+				if(plr->health == 0) quit();
+				spawnEnemy(i);
 				break;
 			}
 
-			// loop through all squad members, if we would collide with one, don't Move
+			// if you would collide with a squad member, don't Move
 			for(int j=0; j<plr->squad->size; j++) {
 				if(inBounds(heading, makeSquareBounds(plr->squad->members[j].coord, CHAR_BOUNDS))) {
 					skipMove = true;
@@ -116,7 +106,7 @@ void enemyGameFrame(void) {
 				if(i == j) continue; //Don't collide with ourselves!
 
 				if(inBounds(heading, makeSquareBounds(enemies[j].coord, CHAR_BOUNDS))) {
-					//Only move around 5% of the time (more realistic)
+					//Only move around 75% of the time (more realistic)
 					//TODO: Change to delay?
 					if(chance(75)) {
 						skipMove = true;
@@ -158,25 +148,17 @@ void enemyGameFrame(void) {
 
 			if(!skipMove) {
 				//Move in the direction we're idly roaming in.
-				if(enemies[i].isRoaming) {
-					enemies[i].coord = calcDirOffset(enemies[i].coord, enemies[i].roamDir);
-
+				if(enemies[i].isRoaming) { enemies[i].coord = calcDirOffset(enemies[i].coord, enemies[i].roamDir); }
 				//Otherwise, home in on player.
-				}else{
-					enemies[i].coord = heading;
-				}
+				else { enemies[i].coord = heading; }
 			}
 	}
 }
 
 void enemyAnimateFrame(void) {
-	if(!timer(&lastIdleTime, IDLE_HZ)) return;
-
 	//Animate the enemies
 	for(int i=0; i < MAX_ENEMY; i++) {
 		if(enemies[i].coord.x == 0) continue;
-
-		//Slight hack - we want to move the enemies in sync with their animation.
 
 		//Increment animations.
 		if(enemies[i].animInc < 4) {
@@ -189,7 +171,7 @@ void enemyAnimateFrame(void) {
 
 void enemyRenderFrame(void){
 	//Draw the enemies with the right animation frame.
-	for(int i=0; i < MAX_ENEMY; i++) {
+	for(int i=0; i<MAX_ENEMY; i++) {
 		if(enemies[i].coord.x == 0) continue;
 
 		Sprite sprite;
@@ -215,29 +197,37 @@ void enemyRenderFrame(void){
 		sprintf(frameFile, frameFile, enemies[i].animInc);
 		sprite = makeFlippedSprite(frameFile, flip);
 		drawSprite(sprite, enemies[i].coord);
+
+		if(showHomingLines){
+			drawLine(128,0,0,
+				makeCoord(enemies[i].coord.x-CHAR_BOUNDS/2, enemies[i].coord.y-CHAR_BOUNDS/2),
+				makeCoord(enemies[i].coord.x+CHAR_BOUNDS/2, enemies[i].coord.y+CHAR_BOUNDS/2));
+			drawLine(128,0,0,
+					makeCoord(enemies[i].coord.x+CHAR_BOUNDS/2, enemies[i].coord.y-CHAR_BOUNDS/2),
+					makeCoord(enemies[i].coord.x-CHAR_BOUNDS/2, enemies[i].coord.y+CHAR_BOUNDS/2));
+		}
 	}
 }
 
 Enemy* makeEnemy_leaks() {
 	Enemy *enemy = malloc(sizeof(Enemy));
-	enemy->coord = makeCoord(0,0);
-	enemy->isRoaming = false;
+	if(!enemy) return NULL;
 	enemy->animInc = randomMq(1,4);
 	return enemy;
 }
 
-void spawnEnemy() {
-	if(enemyCount == MAX_ENEMY) return;
+void spawnEnemy(int i) {
+	if(i >= MAX_ENEMY) return;
 	Enemy *enemy = makeEnemy_leaks();
-	if(enemy) {
-		enemy->coord = makeCoord(randomMq(0, screenBounds.x),randomMq(0, screenBounds.y));
-		enemies[enemyCount++] = *enemy;
-		free(enemy);
-	}
+	if(!enemy) return;
+	enemy->coord = makeSafeCoord(CHAR_BOUNDS);
+	enemies[i] = *enemy;
+	free(enemy);
 }
 
 void initEnemy() {
-	for(int i=0; i < INITIAL_ENEMIES; i++) {
-		spawnEnemy();
+	memset(enemies, 0, sizeof(Enemy)*MAX_ENEMY);
+	for(int i=0; i<MAX_ENEMY; i++) {
+		spawnEnemy(i);
 	}
 }

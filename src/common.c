@@ -6,6 +6,7 @@
 #include "scene.h"
 #include "player.h"
 #include "assets.h"
+
 #define M_PI 3.14159265358979323846264338327950288
 static const double RADIAN_CIRCLE = 2 * M_PI;
 
@@ -87,6 +88,33 @@ Coord makeCoord(double x, double y) {
     return coord;
 }
 
+Coord makeSafeCoord(double size) {
+	Coord coord;
+	bool safe = false;
+	while(!safe) {
+		safe = true;
+		coord = makeCoord(randomMq(0, screenBounds.x),randomMq(0, screenBounds.y));
+		Rect bounds = makeSquareBounds(coord, size);
+
+		// dont spawn on the player
+		if(rectInBounds(bounds,makeSquareBounds(plr->pos,PC_BOUNDS))) { safe = false; }
+		if(!safe) continue;
+
+		// dont spawn on the squad
+		for(int i=0;i<plr->squad->size;i++) {
+			if(rectInBounds(bounds,makeSquareBounds(plr->squad->members[i].coord,CHAR_BOUNDS))) { safe = false; break; }
+		}
+		if(!safe) continue;
+
+		// dont spawn on an enemy
+		for(int i=0;i<MAX_ENEMY;i++) {
+			if(rectInBounds(bounds,makeSquareBounds(enemies[i].coord,CHAR_BOUNDS))) { safe = false; break; }
+		}
+		if(!safe) continue;
+	}
+	return coord;
+}
+
 double sineInc(double offset, double *sineInc, double speed, double magnitude) {
     *sineInc = *sineInc >= RADIAN_CIRCLE ? 0 : *sineInc + speed;
 
@@ -125,28 +153,30 @@ Coord getStep(Coord a, Coord b, double speed) {
 
 bool chance(int probability) {
     //Shortcuts for deterministic scenarios (impossible and always)
-    if(probability == 0) {
-        return false;
-    }else if (probability == 100) {
-        return true;
-    }
-
+    if(probability == 0) return false;
+    if (probability == 100) return true;
     int roll = randomMq(0, 100);			//dice roll up to 100 (to match with a percentage-based probability amount)
     return probability >= roll;			//e.g. 99% is higher than a roll of 5, 50, and 75.
 }
 
+bool rectInBounds(Rect a, Rect b) {
+	return inBounds(makeCoord(a.x+a.width,a.y), b)  || inBounds(makeCoord(a.x,a.y), b) ||
+				 inBounds(makeCoord(a.x,a.y+a.height), b) || inBounds(makeCoord(a.x+a.width,a.y+a.height), b) ||
+ 			 	 inBounds(makeCoord(b.x+b.width,b.y), a)  || inBounds(makeCoord(b.x,b.y), a) ||
+ 				 inBounds(makeCoord(b.x,b.y+b.height), a) || inBounds(makeCoord(b.x+b.width,b.y+b.height), a);
+}
+
 bool inBounds(Coord point, Rect area) {
-    return
-            point.x >= area.x && point.x <= area.width &&
-            point.y >= area.y && point.y <= area.height;
+  return point.x >= area.x && point.x <= area.x+area.width &&
+         point.y >= area.y && point.y <= area.y+area.height;
 }
 
 Rect makeBounds(Coord origin, double width, double height) {
 	Rect bounds = {
     origin.x - (width / 2),
     origin.y - (height / 2),
-    origin.x + (width / 2),
-    origin.y + (height / 2)
+    width,
+		height
   };
   return bounds;
 }

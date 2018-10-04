@@ -9,6 +9,7 @@ long lastIdleTime;
 
 int* aiGreedy__leaks(double *values, int nActors, int nTargets, GreedyGoal goal) {
   int *takenBy = malloc(sizeof(int)*nActors);
+  if(!takenBy) return NULL;
 	memset(takenBy, -1, sizeof(*takenBy)*nActors);
   for(int iTarget=0;iTarget<nTargets;iTarget++) {
     double *value = NULL;
@@ -115,13 +116,16 @@ void squadRenderFrame(Squad *squad) {
 
 Squad* makeSquad_leaks() {
   Squad *squad = malloc(sizeof(Squad));
+  if (!squad) return NULL;
   squad->size = 8;
 
   SquadAttributes *attr = malloc(sizeof(SquadAttributes));
+  if(!attr) return NULL;
   attr->discipline = 10;
   squad->attr = attr;
 
   Enemy *members = malloc(sizeof(Enemy)*squad->size);
+  if(!members) return NULL;
   for(int i=0;i<squad->size;i++) {
   	Enemy e = {
       plr->goals[i],
@@ -131,7 +135,6 @@ Squad* makeSquad_leaks() {
   	members[i] = e;
   }
   squad->members = members;
-
   return squad;
 }
 

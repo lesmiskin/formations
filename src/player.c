@@ -11,9 +11,8 @@
 
 #define WALK_FRAMES 4
 
-
-const double PC_BOUNDS = 15;
 const double MOVE_INC = 1;
+const double PC_BOUNDS = 15;
 
 Player * plr;
 
@@ -42,6 +41,7 @@ void playerSetFormationGoals(Player *p) {
 Player* makePlayer_leaks() {
 	plr = malloc(sizeof(Player));
 	plr->pos = makeCoord(25,50);
+	plr->health = 10;
 	plr->formation = 1;
 	plr->goalAngle =	0;
 	plr->walkInc = 1;
