@@ -11,7 +11,7 @@ typedef struct {
     int volume;
 } SoundDef;
 
-static char* assetPath;
+static char *assetPath;
 static Asset *assets;
 static int assetCount;
 static SoundAsset *sounds;
@@ -30,7 +30,8 @@ SoundAsset getSound(char *path) {
 static Asset makeAsset(AssetDef definition) {
     assert(renderer != NULL);
 
-    char *absPath = combineStrings(assetPath, definition.filename);
+    char *absPath = combineStrings__leaks(assetPath, definition.filename);
+    if(!absPath) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
     //Check existence on file system.
     if(!fileExists(absPath))
         fatalError("Could not find Asset on disk", absPath);
@@ -182,7 +183,8 @@ static void loadImages(void) {
     //Infer asset path from current directory.
     char* workingPath = SDL_GetBasePath();
     char assetsFolder[] = "assets/";
-    assetPath = combineStrings(workingPath, assetsFolder);
+    assetPath = combineStrings__leaks(workingPath, assetsFolder);
+    if(!assetPath) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
 
     //Allocate memory to Asset register.
     assetCount = sizeof(definitions) / sizeof(AssetDef);
@@ -206,9 +208,11 @@ static void loadSounds(void) {
 
     for(int i=0; i < soundCount; i++) {
         //Load music.
-        char* path = combineStrings(assetPath, defs[i].filename);
+        char *path = combineStrings__leaks(assetPath, defs[i].filename);
+        if(!path) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
         Mix_Chunk* chunk = Mix_LoadWAV(path);
         if(!chunk) fatalError("Could not find Asset on disk", path);
+        free(path);
 
         //Reduce volume if called for.
         if(defs[i].volume < SDL_MIX_MAXVOLUME) Mix_VolumeChunk(chunk, defs[i].volume);

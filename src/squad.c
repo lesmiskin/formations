@@ -45,30 +45,29 @@ void squadSeekPosition(Squad *squad) {
 	}
   GreedyGoal goal = MIN;
   int *goals = aiGreedy__leaks((double *)ds,squad->size,8,goal);
-  if(goals) {
-  	for(int i=0; i<squad->size; i++) {
-      squad->members[i].goal = goals[i];
-  		// home towards your goal
-      Coord step = zeroCoord();
-      if(ds[i][squad->members[i].goal]>11-squad->attr->discipline)
-        step = getStep(squad->members[i].coord, plr->goals[squad->members[i].goal], ENEMY_SPEED);
-  		Coord heading = deriveCoord(squad->members[i].coord, step.x, step.y);
+  if(!goals) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
+	for(int i=0; i<squad->size; i++) {
+    squad->members[i].goal = goals[i];
+		// home towards your goal
+    Coord step = zeroCoord();
+    if(ds[i][squad->members[i].goal]>11-squad->attr->discipline)
+      step = getStep(squad->members[i].coord, plr->goals[squad->members[i].goal], ENEMY_SPEED);
+		Coord heading = deriveCoord(squad->members[i].coord, step.x, step.y);
 
-      bool skipMove = false;
-      for(int j=0; j<MAX_ENEMY; j++) {
-        // if you would collide with an enemy, try to push instead of moving
-        if(rectInBounds(makeSquareBounds(heading,CHAR_BOUNDS), makeSquareBounds(enemies[j].coord, CHAR_BOUNDS))) {
-          skipMove = true;
-          if(chance(100)) push(&enemies[j], getAngle(squad->members[i].coord, enemies[j].coord), 8);
-          break;
-        }
+    bool skipMove = false;
+    for(int j=0; j<MAX_ENEMY; j++) {
+      // if you would collide with an enemy, try to push instead of moving
+      if(rectInBounds(makeSquareBounds(heading,CHAR_BOUNDS), makeSquareBounds(enemies[j].coord, CHAR_BOUNDS))) {
+        skipMove = true;
+        if(chance(100)) push(&enemies[j], getAngle(squad->members[i].coord, enemies[j].coord), 8);
+        break;
       }
-      if(skipMove) continue;
-
-      squad->members[i].coord = heading;
     }
-    free(goals);
+    if(skipMove) continue;
+
+    squad->members[i].coord = heading;
   }
+  free(goals);
 }
 
 void push(Enemy *self, double angle, double power) {
@@ -162,8 +161,8 @@ Squad* makeSquad__leaks() {
   Enemy *members = malloc(sizeof(Enemy)*squad->size);
   if(!members) return NULL;
   for(int i=0;i<squad->size;i++) {
-    Enemy *e  = makeEnemy_leaks();
-    if(!e) continue;
+    Enemy *e  = makeEnemy__leaks();
+    if(!e) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
     e->type = NPC_SQUAD;
     e->coord = plr->goals[i],
   	e->goal = i,

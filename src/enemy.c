@@ -122,7 +122,7 @@ void enemyRenderFrame(void){
 	}
 }
 
-Enemy* makeEnemy_leaks() {
+Enemy* makeEnemy__leaks() {
 	Enemy *enemy = malloc(sizeof(Enemy));
 	if(!enemy) return NULL;
 	enemy->type = NPC_ENEMY;
@@ -132,8 +132,8 @@ Enemy* makeEnemy_leaks() {
 
 void spawnEnemy(int i) {
 	if(i >= MAX_ENEMY) return;
-	Enemy *enemy = makeEnemy_leaks();
-	if(!enemy) return;
+	Enemy *enemy = makeEnemy__leaks();
+	if(!enemy) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
 	enemy->coord = makeSafeCoord(CHAR_BOUNDS);
 	enemies[i] = *enemy;
 	free(enemy);

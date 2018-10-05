@@ -31,7 +31,7 @@ extern void enemyRenderFrame();
 extern void initEnemy();
 extern void enemyAnimateFrame();
 extern void spawnEnemy(int);
-extern Enemy* makeEnemy_leaks();
+extern Enemy* makeEnemy__leaks();
 extern bool showHomingLines;
 
 extern bool npcInBounds(Enemy*, Rect);

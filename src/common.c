@@ -66,7 +66,7 @@ void quit(void) {
     running = false;
 }
 
-char *combineStrings(const char *a, const char *b) {
+char* combineStrings__leaks(const char *a, const char *b) {
     //Allocate exact amount of space necessary to hold the two strings.
     char *result = malloc(strlen(a) + strlen(b) + 1);		//+1 for the zero-terminator
     strcpy(result, a);
@@ -113,20 +113,6 @@ Coord makeSafeCoord(double size) {
 		if(!safe) continue;
 	}
 	return coord;
-}
-
-double sineInc(double offset, double *sineInc, double speed, double magnitude) {
-    *sineInc = *sineInc >= RADIAN_CIRCLE ? 0 : *sineInc + speed;
-
-    double sineOffset = (sin(*sineInc) * magnitude);
-    return offset - sineOffset;
-}
-
-double cosInc(double offset, double *sineInc, double speed, double magnitude) {
-    *sineInc = *sineInc >= RADIAN_CIRCLE ? 0 : *sineInc + speed;
-
-    double sineOffset = (cos(*sineInc) * magnitude);
-    return offset - sineOffset;
 }
 
 int randomMq(int min, int max) {
