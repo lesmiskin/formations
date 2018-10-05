@@ -12,17 +12,6 @@ typedef enum {
 	MODE_GAME,
 } GameMode;
 
-typedef enum {
-	DIR_NORTH,
-	DIR_NORTHEAST,
-	DIR_EAST,
-	DIR_SOUTHEAST,
-	DIR_SOUTH,
-	DIR_SOUTHWEST,
-	DIR_WEST,
-	DIR_NORTHWEST,
-} Dir;
-
 typedef struct {
 	double x, y;
 	int width, height;
@@ -56,6 +45,7 @@ extern double sineInc(double offset, double *sineInc, double speed, double magni
 extern double cosInc(double offset, double *sineInc, double speed, double magnitude);
 extern double getAngle(Coord a, Coord b);
 extern Coord getStep(Coord a, Coord b, double speed);
+extern Coord makeStep(double angle, double speed);
 extern bool chance(int probability);
 
 #endif

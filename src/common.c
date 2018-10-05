@@ -139,15 +139,19 @@ double getAngle(Coord a, Coord b) {
 
 Coord getStep(Coord a, Coord b, double speed) {
 	double angle = getAngle(a, b);
-	Coord step = makeCoord(
-					(cos(angle) * speed),
-					(sin(angle) * speed)
-	);
+	Coord step = makeStep(angle,speed);
+
 	// partial step if close to goal
-	if(abs(a.x-b.x)<abs(step.x)) { step.x = b.x-a.x; }
-	if(abs(a.y-b.y)<abs(step.y)) { step.y = b.y-a.y; }
+	if(abs(b.x-a.x)<=abs(step.x)) { step.x = b.x-a.x; }
+	if(abs(b.y-a.y)<=abs(step.y)) { step.y = b.y-a.y; }
 
   return step;
+}
+
+Coord makeStep(double angle, double speed) {
+	return makeCoord(
+		(cos(angle) * speed),
+		(sin(angle) * speed));
 }
 
 bool chance(int probability) {
@@ -159,10 +163,14 @@ bool chance(int probability) {
 }
 
 bool rectInBounds(Rect a, Rect b) {
-	return inBounds(makeCoord(a.x+a.width,a.y), b)  || inBounds(makeCoord(a.x,a.y), b) ||
-				 inBounds(makeCoord(a.x,a.y+a.height), b) || inBounds(makeCoord(a.x+a.width,a.y+a.height), b) ||
- 			 	 inBounds(makeCoord(b.x+b.width,b.y), a)  || inBounds(makeCoord(b.x,b.y), a) ||
- 				 inBounds(makeCoord(b.x,b.y+b.height), a) || inBounds(makeCoord(b.x+b.width,b.y+b.height), a);
+	return inBounds(makeCoord(a.x,a.y), b)
+			|| inBounds(makeCoord(a.x,a.y+a.height), b)
+			|| inBounds(makeCoord(a.x+a.width,a.y), b)
+			|| inBounds(makeCoord(a.x+a.width,a.y+a.height), b);
+			// || inBounds(makeCoord(b.x,b.y), a)
+			// || inBounds(makeCoord(b.x,b.y+b.height), a)
+			// || inBounds(makeCoord(b.x+b.width,b.y), a)
+ 			// || inBounds(makeCoord(b.x+b.width,b.y+b.height), a);
 }
 
 bool inBounds(Coord point, Rect area) {

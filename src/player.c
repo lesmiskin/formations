@@ -11,8 +11,8 @@
 
 #define WALK_FRAMES 4
 
-const double MOVE_INC = 1;
-const double PC_BOUNDS = 15;
+const double MOVE_INC = 0.5;
+const double PC_BOUNDS = 10;
 
 Player * plr;
 
@@ -21,11 +21,11 @@ void playerSetFormationGoals(Player *p) {
 		Coord g0;
 		// shape it
 		if(p->formation == 1) {
-			g0 = makeCoord(((i<4?i:i+1)%3-1)*PC_BOUNDS, ((i<4?i:i+1)/3-1)*PC_BOUNDS);
+			g0 = makeCoord(((i<4?i:i+1)%3-1)*1.5*PC_BOUNDS, ((i<4?i:i+1)/3-1)*1.5*PC_BOUNDS);
 		} else if (p->formation == 2) {
-			g0 = makeCoord((i-3.5)*.75*PC_BOUNDS, -PC_BOUNDS);
+			g0 = makeCoord((i-3.5)*PC_BOUNDS, -PC_BOUNDS);
 		} else if (p->formation == 3) {
-			g0 = makeCoord((i-3.5)*.5*PC_BOUNDS, (i%4)*(i/4 > 0 ? 1 : -1)*.25*PC_BOUNDS - (i/4 > 0 ? .75*PC_BOUNDS : 0));
+			g0 = makeCoord((i-3.5)*PC_BOUNDS, (i%4)*(i/4 > 0 ? 1 : -1)*.5*PC_BOUNDS - (i/4 > 0 ? PC_BOUNDS : 0));
 		}
 
 		// rotate it
@@ -40,10 +40,10 @@ void playerSetFormationGoals(Player *p) {
 
 Player* makePlayer__leaks() {
 	plr = malloc(sizeof(Player));
-	plr->pos = makeCoord(25,50);
+	plr->pos = makeCoord(100,50);
 	plr->health = 10;
 	plr->formation = 1;
-	plr->goalAngle =	0;
+	plr->goalAngle =	degToRad(0);
 	plr->walkInc = 1;
 	return plr;
 }
@@ -62,7 +62,6 @@ void playerRenderFrame(Player *p) {
 	Sprite player = makeFlippedSprite(frameFile, flip);
 
 	drawSprite(player, p->pos);
-	squadRenderFrame(p->squad);
 }
 
 void playerGameFrame(Player *p) {
@@ -75,19 +74,20 @@ void playerGameFrame(Player *p) {
 	if(checkCommand(CMD_ROTATE_FORM_CW)) p->goalAngle = degToRad(radToDeg(p->goalAngle)+2);
 	if(checkCommand(CMD_ROTATE_FORM_CCW)) p->goalAngle = degToRad(radToDeg(p->goalAngle)-2);
 
-	// We still turn the player sprite where we can, even if we're hard
-	// up against a screen bound.
 	Coord goal = makeCoord(
-		(checkCommand(CMD_PLAYER_LEFT) ? 1 : 0) * -1
-	+ (checkCommand(CMD_PLAYER_RIGHT) ? 1 : 0) * 1,
-		(checkCommand(CMD_PLAYER_UP) ? 1 : 0) * -1
-	+ (checkCommand(CMD_PLAYER_DOWN) ? 1 : 0) * 1);
-
+		(checkCommand(CMD_PLAYER_LEFT) ? 1 : 0) * -MOVE_INC
+	+ (checkCommand(CMD_PLAYER_RIGHT) ? 1 : 0) * MOVE_INC,
+		(checkCommand(CMD_PLAYER_UP) ? 1 : 0) * -MOVE_INC
+	+ (checkCommand(CMD_PLAYER_DOWN) ? 1 : 0) * MOVE_INC);
 	Coord step = getStep(zeroCoord(),goal,MOVE_INC);
 	Coord heading = deriveCoord(p->pos,step.x,step.y);
+
+	// no walking off the screen!
 	p->pos.x = fmin(screenBounds.x-PC_BOUNDS/2,fmax(0+PC_BOUNDS/2,heading.x));
 	p->pos.y = fmin(screenBounds.y-PC_BOUNDS/2,fmax(0+PC_BOUNDS/2,heading.y));
 
+	// We still turn the player sprite where we can, even if we're hard
+	// up against a screen bound.
 	p->walking = false;
 	if (checkCommand(CMD_PLAYER_LEFT)) {
 		p->dir = false;
@@ -104,7 +104,6 @@ void playerGameFrame(Player *p) {
 		p->walking = true;
 	}
 	playerSetFormationGoals(p);
-	squadGameFrame(p->squad);
 }
 
 void initPlayer() {

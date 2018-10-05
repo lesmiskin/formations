@@ -3,14 +3,20 @@
 
 #include "common.h"
 
-#define MAX_ENEMY 30
+#define MAX_ENEMY 50
+
+typedef enum {
+	NPC_ENEMY,
+	NPC_SQUAD
+} NpcType;
 
 typedef struct {
 	Coord coord;
+	NpcType type;
 	int goal;
 	int animInc;
 	bool isRoaming;
-	Dir roamDir;
+	double roamDir;
 	long lastRoamTime;
 } Enemy;
 
@@ -25,6 +31,10 @@ extern void enemyRenderFrame();
 extern void initEnemy();
 extern void enemyAnimateFrame();
 extern void spawnEnemy(int);
+extern Enemy* makeEnemy_leaks();
 extern bool showHomingLines;
+
+extern bool npcInBounds(Enemy*, Rect);
+extern bool npcCollidesWith(Enemy*, Enemy*);
 
 #endif

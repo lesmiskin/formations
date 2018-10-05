@@ -46,7 +46,7 @@ void squadSeekPosition(Squad *squad) {
   GreedyGoal goal = MIN;
   int *goals = aiGreedy__leaks((double *)ds,squad->size,8,goal);
   if(goals) {
-  	for(int i=0; i < squad->size; i++) {
+  	for(int i=0; i<squad->size; i++) {
       squad->members[i].goal = goals[i];
   		// home towards your goal
       Coord step = zeroCoord();
@@ -54,43 +54,43 @@ void squadSeekPosition(Squad *squad) {
         step = getStep(squad->members[i].coord, plr->goals[squad->members[i].goal], ENEMY_SPEED);
   		Coord heading = deriveCoord(squad->members[i].coord, step.x, step.y);
 
-      // if you would collide with an enemy, try to push instead of moving
       bool skipMove = false;
-      if(chance(100)) {
-        for(int j=0; j<MAX_ENEMY; j++) {
-          if(inBounds(heading, makeSquareBounds(enemies[j].coord, CHAR_BOUNDS))) {
-            skipMove = true;
-            Coord atk = getStep(squad->members[i].coord,plr->goals[squad->members[i].goal],3);
-            push(squad->members[i].coord,atk,&squad->members[i]);
-            break;
-          }
+      for(int j=0; j<MAX_ENEMY; j++) {
+        // if you would collide with an enemy, try to push instead of moving
+        if(rectInBounds(makeSquareBounds(heading,CHAR_BOUNDS), makeSquareBounds(enemies[j].coord, CHAR_BOUNDS))) {
+          skipMove = true;
+          if(chance(100)) push(&enemies[j], getAngle(squad->members[i].coord, enemies[j].coord), 8);
+          break;
         }
       }
+      if(skipMove) continue;
 
-      if(!skipMove) squad->members[i].coord = heading;
+      squad->members[i].coord = heading;
     }
     free(goals);
   }
 }
 
-void push(Coord origin, Coord atk, Enemy *self) {
-  Coord hit = deriveCoord(origin, atk.x, atk.y);
+void push(Enemy *self, double angle, double power) {
+  Coord step = makeStep(angle,power);
+  Coord coord = deriveCoord(self->coord, step.x, step.y);
+
   for(int i=0; i<MAX_ENEMY; i++) {
     if(self == &enemies[i]) continue;
-    if(inBounds(hit,makeSquareBounds(enemies[i].coord,CHAR_BOUNDS))) {
-      Coord coord = deriveCoord(enemies[i].coord, atk.x, atk.y);
-      push(enemies[i].coord,atk,&enemies[i]);
-      enemies[i].coord = coord;
+    if(npcInBounds(&enemies[i],makeSquareBounds(coord,CHAR_BOUNDS))) {
+      if(self->type == NPC_ENEMY) {
+        // angle = getAngle(self->coord,enemies[i].coord);
+        push(&enemies[i],angle,power);
+      }
     }
   }
   for(int i=0;i<plr->squad->size;i++) {
     if(self == &plr->squad->members[i]) continue;
-    if(inBounds(hit,makeSquareBounds(plr->squad->members[i].coord,CHAR_BOUNDS))) {
-      Coord coord = deriveCoord(plr->squad->members[i].coord, atk.x, atk.y);
-      // push(plr->squad->members[i].coord,atk,&plr->squad->members[i]);
-      plr->squad->members[i].coord = coord;
+    if(npcInBounds(&plr->squad->members[i],makeSquareBounds(coord,CHAR_BOUNDS))) {
+      // if(pushSquad) push(&plr->squad->members[i],angle,power);
     }
   }
+  self->coord = coord;
 }
 
 void squadSpecial(Squad *squad) {}
@@ -162,12 +162,12 @@ Squad* makeSquad__leaks() {
   Enemy *members = malloc(sizeof(Enemy)*squad->size);
   if(!members) return NULL;
   for(int i=0;i<squad->size;i++) {
-  	Enemy e = {
-      plr->goals[i],
-  		i,
-  		randomMq(1,4)
-  	};
-  	members[i] = e;
+    Enemy *e  = makeEnemy_leaks();
+    if(!e) continue;
+    e->type = NPC_SQUAD;
+    e->coord = plr->goals[i],
+  	e->goal = i,
+  	members[i] = *e;
   }
   squad->members = members;
   return squad;

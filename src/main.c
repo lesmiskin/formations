@@ -91,6 +91,7 @@ int main()  {
       pollInput();
       sceneGameFrame();
       playerGameFrame(plr);
+      squadGameFrame(plr->squad);
       enemyGameFrame();
       hudGameFrame();
       processSystemCommands();
@@ -108,6 +109,7 @@ int main()  {
     if(timer(&lastRenderFrameTime, RENDER_HZ)) {
       sceneRenderFrame();
       playerRenderFrame(plr);
+      squadRenderFrame(plr->squad);
       enemyRenderFrame();
       hudRenderFrame();
       updateCanvas();
