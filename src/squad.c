@@ -40,27 +40,28 @@ int* aiGreedy__leaks(double *values, int nActors, int nTargets, GreedyGoal goal)
 
 void squadSeekPosition(Squad *squad) {
 	double ds[squad->size][8];
-	for(int i=0;i<squad->size;i++) {
-		for(int j=0;j<8;j++) {
-			ds[i][j] = calcDistance(squad->members[i].coord,plr->goals[j]);
+  for(int j=0;j<plr->formation->size;j++) {
+    Coord p = formationGetPosition(plr->formation,j);
+	  for(int i=0;i<squad->size;i++) {
+			ds[i][j] = calcDistance(squad->members[i].coord,p);
 		}
 	}
   GreedyGoal goal = MIN;
-  int *goals = aiGreedy__leaks((double *)ds,squad->size,8,goal);
-  assert(goals);
+  int *takenBy = aiGreedy__leaks((double *)ds,squad->size,plr->formation->size,goal);
+  assert(takenBy);
 	for(int i=0; i<squad->size; i++) {
-    squad->members[i].goal = goals[i];
+    squad->members[i].goal = formationGetPosition(plr->formation,takenBy[i]);
 		// home towards your goal
     Coord step = zeroCoord();
-    if(ds[i][squad->members[i].goal]>11-((SquadAttributes*)squad->members[i].attr)->discipline)
+    if(ds[i][takenBy[i]]>11-((SquadAttributes*)squad->members[i].attr)->discipline)
       step = getStep(squad->members[i].coord,
-                     plr->goals[squad->members[i].goal],
+                     squad->members[i].goal,
                      ((SquadAttributes*)squad->members[i].attr)->speed);
 		Coord heading = deriveCoord(squad->members[i].coord, step.x, step.y);
 
     bool skipMove = false;
     for(int j=0; j<MAX_ENEMY; j++) {
-      // if you would collide with an enemy, try to push instead of moving
+      // if you would collide with an enemy, try to push them instead of moving
       if(npcInBounds(&enemies[j], makeSquareBounds(heading,((SquadAttributes*)squad->members[i].attr)->size))) {
         skipMove = true;
         if(chance(100)) push(&enemies[j],
@@ -73,7 +74,7 @@ void squadSeekPosition(Squad *squad) {
 
     squad->members[i].coord = heading;
   }
-  free(goals);
+  free(takenBy);
 }
 
 void squadSpecial(Squad *squad) {}
@@ -105,8 +106,8 @@ void squadRenderFrame(Squad *squad) {
 		bool isUp = false;
 		bool isDown = false;
 
-		isUp   = squad->members[i].coord.y-plr->goals[squad->members[i].goal].y > abs(squad->members[i].coord.x-plr->goals[squad->members[i].goal].x);
-		isDown = plr->goals[squad->members[i].goal].y-squad->members[i].coord.y > abs(squad->members[i].coord.x-plr->goals[squad->members[i].goal].x);
+		isUp   = squad->members[i].coord.y-squad->members[i].goal.y > abs(squad->members[i].coord.x-squad->members[i].goal.x);
+		isDown = squad->members[i].goal.y-squad->members[i].coord.y > abs(squad->members[i].coord.x-squad->members[i].goal.x);
 
 		char frameFile[28];
 
@@ -117,12 +118,12 @@ void squadRenderFrame(Squad *squad) {
 			strcpy(frameFile, "werewolf-walk-down-%02d.png");
 		} else{
 			strcpy(frameFile, "werewolf-walk-%02d.png");
-			flip = squad->members[i].coord.x > plr->goals[squad->members[i].goal].x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+			flip = squad->members[i].coord.x > squad->members[i].goal.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 		}
 
 		// Draw line showing where the enemy is homing to.
 		if(showHomingLines){
-			drawLine(0,128,0, squad->members[i].coord, plr->goals[squad->members[i].goal]);
+			drawLine(0,128,0, squad->members[i].coord, squad->members[i].goal);
 		}
 
 		sprintf(frameFile, frameFile, squad->members[i].animInc);
@@ -144,8 +145,8 @@ Squad* makeSquad__leaks() {
     Npc *e  = makeNpc__leaks();
     assert(e);
     e->type = NPC_SQUAD;
-    e->coord = plr->goals[i],
-    e->goal = i,
+    e->coord = formationGetPosition(plr->formation,i),
+    e->goal = formationGetPosition(plr->formation,i),
     e->attr = malloc(sizeof(SquadAttributes));
     assert(e->attr);
     ((SquadAttributes*)e->attr)->discipline = 10;

@@ -14,25 +14,29 @@
 Npc *enemies;
 
 static long lastIdleTime;
-const double DIR_CHANGE = 250;
+const double DIR_CHANGE = 1000;
 bool showHomingLines = false;
 
 void enemyGameFrame(void) {
 	for(int i=0; i<MAX_ENEMY; i++) {
-			if(enemies[i].coord.x == 0) continue;
-
 			Coord heading;
 			bool skipMove = false;
 
 			//Turn off roaming if enough time has elapsed.
-			if(enemies[i].isRoaming && isDue(clock(), enemies[i].lastRoamTime, DIR_CHANGE))
+			if(enemies[i].isRoaming && timer(&enemies[i].lastRoamTime, DIR_CHANGE))
 				enemies[i].isRoaming = false;
 
 			Coord step;
 			//If we're roaming - head in that direction.
-			if(enemies[i].isRoaming) { step = makeStep(enemies[i].roamDir, ((EnemyAttributes*)enemies[i].attr)->speed); }
+			if(enemies[i].isRoaming) {
+				step = makeStep(enemies[i].roamDir, ((EnemyAttributes*)enemies[i].attr)->speed);
+				enemies[i].goal = deriveCoord(enemies[i].coord, step.x*10, step.y*10);
+			}
 			//Otherwise - home towards player.
-			else { step = getStep(enemies[i].coord, plr->pos, ((EnemyAttributes*)enemies[i].attr)->speed); }
+			else {
+				step = getStep(enemies[i].coord, plr->pos, ((EnemyAttributes*)enemies[i].attr)->speed);
+				enemies[i].goal = plr->pos;
+			}
 			heading = deriveCoord(enemies[i].coord, step.x, step.y);
 
 			// if you would collide with player, respawn
@@ -86,7 +90,7 @@ void enemyAnimateFrame(void) {
 	}
 }
 
-void enemyRenderFrame(void){
+void enemyRenderFrame(){
 	//Draw the enemies with the right animation frame.
 	for(int i=0; i<MAX_ENEMY; i++) {
 		if(enemies[i].coord.x == 0) continue;
@@ -95,8 +99,8 @@ void enemyRenderFrame(void){
 		bool isUp = false;
 		bool isDown = false;
 
-		isUp   = enemies[i].coord.y-plr->pos.y > abs(enemies[i].coord.x-plr->pos.x);
-		isDown = plr->pos.y-enemies[i].coord.y > abs(enemies[i].coord.x-plr->pos.x);
+		isUp   = enemies[i].coord.y-enemies[i].goal.y > abs(enemies[i].coord.x-enemies[i].goal.x);
+		isDown = enemies[i].goal.y-enemies[i].coord.y > abs(enemies[i].coord.x-enemies[i].goal.x);
 
 		char frameFile[28];
 
@@ -107,7 +111,7 @@ void enemyRenderFrame(void){
 			strcpy(frameFile, "dracula-walk-down-%02d.png");
 		} else{
 			strcpy(frameFile, "dracula-walk-%02d.png");
-			flip = enemies[i].coord.x > plr->pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+			flip = enemies[i].coord.x > enemies[i].goal.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 		}
 
 		sprintf(frameFile, frameFile, enemies[i].animInc);
@@ -136,7 +140,7 @@ void spawnEnemy(int i) {
 	e->attr = malloc(sizeof(EnemyAttributes));
 	assert(e->attr);
 	((EnemyAttributes*)e->attr)->size = 10;
-	((EnemyAttributes*)e->attr)->power = 3;
+	((EnemyAttributes*)e->attr)->power = 0;
 	((EnemyAttributes*)e->attr)->speed = 1;
 	e->coord = makeSafeCoord(scene,((EnemyAttributes*)e->attr)->size);
 

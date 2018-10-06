@@ -17,35 +17,49 @@ const double PC_BOUNDS = 10;
 
 Player * plr;
 
-void playerSetFormationGoals(Player *p) {
-	for(int i=0; i < 8; i++) {
-		Coord g0;
-		// shape it
-		if(p->formation == 1) {
-			g0 = makeCoord(((i<4?i:i+1)%3-1)*1.5*PC_BOUNDS, ((i<4?i:i+1)/3-1)*1.5*PC_BOUNDS);
-		} else if (p->formation == 2) {
-			g0 = makeCoord((i-3.5)*PC_BOUNDS, -PC_BOUNDS);
-		} else if (p->formation == 3) {
-			g0 = makeCoord((i-3.5)*PC_BOUNDS, (i%4)*(i/4 > 0 ? 1 : -1)*.5*PC_BOUNDS - (i/4 > 0 ? PC_BOUNDS : 0));
-		}
+Coord formationGetPosition(Formation *f, int i) {
+	// rotate
+	double s = sin(f->orientation);
+	double c = cos(f->orientation);
+	double x = f->positions[i].x;
+	double y = f->positions[i].y;
+	Coord p = makeCoord(x*c-y*s,x*s+y*c);
 
-		// rotate it
-		double s = sin(p->goalAngle);
-		double c = cos(p->goalAngle);
-		g0 = makeCoord(g0.x*c-g0.y*s,g0.x*s+g0.y*c);
+	// translate
+	return makeCoord(plr->pos.x + p.x, plr->pos.y + p.y);
+}
 
-		// translate it
-		p->goals[i] = makeCoord(p->pos.x + g0.x,p->pos.y + g0.y);
+void formationSetPositions(Formation *f, int formation) {
+	for(int i=0; i<f->size; i++) {
+		if(formation == 1) { f->positions[i] = makeCoord(((i<4?i:i+1)%3-1)*1.5*PC_BOUNDS, ((i<4?i:i+1)/3-1)*1.5*PC_BOUNDS); }
+		if(formation == 2) { f->positions[i] = makeCoord((i-3.5)*PC_BOUNDS, -PC_BOUNDS); }
+		if(formation == 3) { f->positions[i] = makeCoord((i-3.5)*PC_BOUNDS, (i%4)*(i/4 > 0 ? 1 : -1)*.5*PC_BOUNDS - (i/4 > 0 ? PC_BOUNDS : 0)); }
 	}
+}
+
+Formation* makeFormation__leaks(int formation) {
+	Formation *f = malloc(sizeof(Formation));
+	assert(f);
+	f->size = 8;
+	f->orientation = 0;
+
+	f->positions = malloc(sizeof(Coord)*f->size);
+	assert(f->positions);
+	formationSetPositions(f,1);
+
+	return f;
 }
 
 Player* makePlayer__leaks() {
 	plr = malloc(sizeof(Player));
+	assert(plr);
 	plr->pos = makeCoord(100,50);
 	plr->health = 10;
-	plr->formation = 1;
-	plr->goalAngle =	degToRad(0);
 	plr->walkInc = 1;
+
+	plr->formation = makeFormation__leaks(1);
+	assert(plr->formation);
+
 	return plr;
 }
 
@@ -67,14 +81,14 @@ void playerRenderFrame(Player *p) {
 }
 
 void playerGameFrame(Player *p) {
-	if(checkCommand(CMD_FORMATION_1)) plr->formation = 1;
-	if(checkCommand(CMD_FORMATION_2)) plr->formation = 2;
-	if(checkCommand(CMD_FORMATION_3)) plr->formation = 3;
-	if(checkCommand(CMD_FORMATION_4)) plr->formation = 3;
+	if(checkCommand(CMD_FORMATION_1)) formationSetPositions(plr->formation,1);
+	if(checkCommand(CMD_FORMATION_2)) formationSetPositions(plr->formation,2);
+	if(checkCommand(CMD_FORMATION_3)) formationSetPositions(plr->formation,3);
+	if(checkCommand(CMD_FORMATION_4)) formationSetPositions(plr->formation,3);
 
 	// rotate formation
-	if(checkCommand(CMD_ROTATE_FORM_CW)) p->goalAngle = degToRad(radToDeg(p->goalAngle)+2);
-	if(checkCommand(CMD_ROTATE_FORM_CCW)) p->goalAngle = degToRad(radToDeg(p->goalAngle)-2);
+	if(checkCommand(CMD_ROTATE_FORM_CW)) p->formation->orientation = degToRad(radToDeg(p->formation->orientation)+2);
+	if(checkCommand(CMD_ROTATE_FORM_CCW)) p->formation->orientation = degToRad(radToDeg(p->formation->orientation)-2);
 
 	Coord goal = makeCoord(
 		(checkCommand(CMD_PLAYER_LEFT) ? 1 : 0) * -MOVE_INC
@@ -105,13 +119,19 @@ void playerGameFrame(Player *p) {
 	if (checkCommand(CMD_PLAYER_DOWN) && p->pos.y < screenBounds.y) {
 		p->walking = true;
 	}
-	playerSetFormationGoals(p);
 }
 
 void initPlayer() {
 	plr = makePlayer__leaks();
 	assert(plr);
-	playerSetFormationGoals(plr);
 	plr->squad = makeSquad__leaks();
 	assert(plr->squad);
+}
+
+void freePlayer(Player *plr) {
+	freeSquad(plr->squad);
+	for(int i=0;i<plr->formation->size;i++) {
+		free(&plr->formation->positions[i]);
+	}
+	free(plr);
 }

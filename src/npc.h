@@ -10,9 +10,9 @@ typedef enum {
 
 typedef struct {
 	Coord coord;
+	Coord goal;
 	NpcType type;
 	void *attr;
-	int goal;
 	int animInc;
 	bool isRoaming;
 	double roamDir;

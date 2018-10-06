@@ -6,19 +6,24 @@
 extern const double PC_BOUNDS;
 
 typedef struct {
+  int size;
+  Coord *positions;
+  double orientation;
+} Formation;
+
+typedef struct {
   Coord pos;
   int health;
-  int formation;
-  Coord goals[8];
-  double goalAngle;
+  Formation *formation;
+  Squad *squad;
   bool dir;
   bool walking;
   int walkInc;
-  Squad *squad;
 } Player;
 
 extern Player *plr;
 
+extern Coord formationGetPosition(Formation*,int);
 extern void playerGameFrame(Player*);
 extern void playerRenderFrame(Player*);
 extern void playerAnimateFrame(Player*);

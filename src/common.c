@@ -27,14 +27,14 @@ long ticsToMilliseconds(long tics) {
     return tics / platformAgnosticMilliseconds;
 }
 
-bool isDue(long now, long lastTime, double hertz) {
+bool isDue(long now, long lastTime, double ms) {
     long timeSinceLast = ticsToMilliseconds(now - lastTime);
-    return timeSinceLast >= hertz;
+    return timeSinceLast >= ms;
 }
 
-bool timer(long *lastTime, double hertz){
+bool timer(long *lastTime, double ms){
     long now = clock();
-    if(isDue(now, *lastTime, hertz)) {
+    if(isDue(now, *lastTime, ms)) {
         *lastTime = now;
         return true;
     }else{
@@ -52,7 +52,7 @@ void fatalError(const char *title, const char *message) {
     SDL_Quit();
 }
 
-void quit(void) {
+void quit() {
     running = false;
 }
 
