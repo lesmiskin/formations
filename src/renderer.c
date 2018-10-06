@@ -6,7 +6,7 @@ SDL_Texture *renderBuffer;
 SDL_Renderer *renderer = NULL;
 static int renderScale;
 static const int BASE_SCALE_WIDTH = 160;
-static const int BASE_SCALE_HEIGHT = 120;
+static const int BASE_SCALE_HEIGHT = 90;
 static const double PIXEL_SCALE = 1;				//pixel doubling for assets.
 Coord pixelGrid;					    			//helps aligning things to the tiled background.
 Coord screenBounds;
@@ -36,18 +36,18 @@ Sprite makeSimpleSprite(char *textureName) {
 }
 
 void drawSpriteFull(Sprite sprite, Coord origin, double scale, double angle) {
-    //Ensure we're always calling this with an initialised sprite_t.
+    // Ensure we're always calling this with an initialised sprite_t.
     assert(sprite.texture != NULL);
 
-    //Offsets should be relative to image pixel metrics, not screen metrics.
+    // Offsets should be relative to image pixel metrics, not screen metrics.
     int offsetX = sprite.offset.x;
     int offsetY = sprite.offset.y;
 
-    //NB: We adjust the offset to ensure all sprites are drawn centered at their coord points
+    // We adjust the offset to ensure all sprites are drawn centered at their coord points
     offsetX -= (sprite.size.x / 2);
     offsetY -= (sprite.size.y / 2);
 
-    //Configure target location output sprite_t size, adjusting the latter for the constant sprite_t scaling factor.
+    // Configure target location output sprite_t size, adjusting the latter for the constant sprite_t scaling factor.
     SDL_Rect destination  = {
         (origin.x + offsetX),
         (origin.y + offsetY),
@@ -100,8 +100,8 @@ void initRenderer(void) {
         renderer,
         SDL_PIXELFORMAT_RGB24,
         SDL_TEXTUREACCESS_TARGET,
-        (int)pixelGrid.x,
-        (int)pixelGrid.y
+        (int)ceil(pixelGrid.x),
+        (int)ceil(pixelGrid.y)
     );
 
     //Rachaie's background.

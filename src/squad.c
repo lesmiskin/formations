@@ -59,7 +59,7 @@ void squadSeekPosition(Squad *squad) {
       // if you would collide with an enemy, try to push instead of moving
       if(rectInBounds(makeSquareBounds(heading,CHAR_BOUNDS), makeSquareBounds(enemies[j].coord, CHAR_BOUNDS))) {
         skipMove = true;
-        if(chance(100)) push(&enemies[j], getAngle(squad->members[i].coord, enemies[j].coord), 8);
+        if(chance(100)) push(&enemies[j], getAngle(squad->members[i].coord, enemies[j].coord), 4);
         break;
       }
     }
@@ -78,15 +78,9 @@ void push(Enemy *self, double angle, double power) {
     if(self == &enemies[i]) continue;
     if(npcInBounds(&enemies[i],makeSquareBounds(coord,CHAR_BOUNDS))) {
       if(self->type == NPC_ENEMY) {
-        // angle = getAngle(self->coord,enemies[i].coord);
+        angle = getAngle(self->coord,enemies[i].coord);
         push(&enemies[i],angle,power);
       }
-    }
-  }
-  for(int i=0;i<plr->squad->size;i++) {
-    if(self == &plr->squad->members[i]) continue;
-    if(npcInBounds(&plr->squad->members[i],makeSquareBounds(coord,CHAR_BOUNDS))) {
-      // if(pushSquad) push(&plr->squad->members[i],angle,power);
     }
   }
   self->coord = coord;
@@ -122,8 +116,8 @@ void squadRenderFrame(Squad *squad) {
 		bool isUp = false;
 		bool isDown = false;
 
-		isUp = squad->members[i].coord.y > plr->pos.y;
-		isDown = squad->members[i].coord.y < plr->pos.y;
+		isUp   = squad->members[i].coord.y-plr->goals[squad->members[i].goal].y > abs(squad->members[i].coord.x-plr->goals[squad->members[i].goal].x);
+		isDown = plr->goals[squad->members[i].goal].y-squad->members[i].coord.y > abs(squad->members[i].coord.x-plr->goals[squad->members[i].goal].x);
 
 		char frameFile[28];
 
@@ -134,7 +128,7 @@ void squadRenderFrame(Squad *squad) {
 			strcpy(frameFile, "werewolf-walk-down-%02d.png");
 		} else{
 			strcpy(frameFile, "werewolf-walk-%02d.png");
-			flip = squad->members[i].coord.x > plr->pos.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+			flip = squad->members[i].coord.x > plr->goals[squad->members[i].goal].x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 		}
 
 		// Draw line showing where the enemy is homing to.

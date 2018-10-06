@@ -9,8 +9,7 @@
 #define WALK_FRAMES 4
 Enemy enemies[MAX_ENEMY];
 static long lastIdleTime;
-const int IDLE_HZ = 1000 / 4;
-const double ENEMY_SPEED = 0.5;
+const double ENEMY_SPEED = 1;
 const double CHAR_BOUNDS = 10;
 const double DIR_CHANGE = 250;
 bool showHomingLines = false;
@@ -45,7 +44,7 @@ void enemyGameFrame(void) {
 			for(int j=0; j<plr->squad->size; j++) {
 				if(npcInBounds(&plr->squad->members[j],makeSquareBounds(heading,CHAR_BOUNDS))) {
 					skipMove = true;
-					if(chance(25)) push(&plr->squad->members[j],getAngle(enemies[i].coord,plr->pos),4);
+					if(chance(25)) push(&plr->squad->members[j],getAngle(enemies[i].coord,plr->squad->members[j].coord),3);
 					break;
 				}
 			}
@@ -125,7 +124,6 @@ void enemyRenderFrame(void){
 Enemy* makeEnemy__leaks() {
 	Enemy *enemy = malloc(sizeof(Enemy));
 	if(!enemy) return NULL;
-	enemy->type = NPC_ENEMY;
 	enemy->animInc = randomMq(1,4);
 	return enemy;
 }
@@ -134,6 +132,7 @@ void spawnEnemy(int i) {
 	if(i >= MAX_ENEMY) return;
 	Enemy *enemy = makeEnemy__leaks();
 	if(!enemy) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
+	enemy->type = NPC_ENEMY;
 	enemy->coord = makeSafeCoord(CHAR_BOUNDS);
 	enemies[i] = *enemy;
 	free(enemy);

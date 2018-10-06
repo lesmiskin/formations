@@ -12,18 +12,18 @@
 #include "enemy.h"
 
 static const char *GAME_TITLE = "Formations Alpha 0.1";
-const int ANIMATION_HZ = 1000 / 4;		//12fps
-const int RENDER_HZ = 1000 / 60;		//60fps
-const int GAME_HZ = 1000 / 60;			//60fps
+const int ANIMATION_HZ = 1000 / 12;
+const int RENDER_HZ = 1000 / 12;
+const int GAME_HZ = 1000 / 30;
 
 bool running = true;
 SDL_Window *window = NULL;
 
 #ifdef _WIN32
 #elif __APPLE__
-  Coord windowSize = { 640, 480};
+  Coord windowSize = { 1280, 720};
 #elif __linux__
-  Coord windowSize = { 1280, 960 };   // 320x240
+  Coord windowSize = { 1280, 720 };
 #endif
 
 static void initSDL(void) {

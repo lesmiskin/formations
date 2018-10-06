@@ -3,7 +3,7 @@
 
 #include "common.h"
 
-#define MAX_ENEMY 50
+#define MAX_ENEMY 15
 
 typedef enum {
 	NPC_ENEMY,
@@ -22,7 +22,6 @@ typedef struct {
 
 extern const double ENEMY_SPEED;
 extern const double CHAR_BOUNDS;
-extern const int IDLE_HZ;
 
 extern Enemy enemies[MAX_ENEMY];
 

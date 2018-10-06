@@ -3,7 +3,6 @@
 #include "common.h"
 #include "assets.h"
 #include "hud.h"
-
 #include "enemy.h"
 #include "player.h"
 
@@ -25,9 +24,6 @@ typedef struct {
 const int TILE_SIZE = 8;
 static Sprite ground;
 static Prop props[MAX_PROPS];
-
-
-//BUG: Lots of hardcoded shit in here to fix scaling bugs. Get rid of our scaling entirely...?
 
 static void makeGroundTexture() {
 	//Init the SDL texture

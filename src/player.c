@@ -11,7 +11,7 @@
 
 #define WALK_FRAMES 4
 
-const double MOVE_INC = 0.5;
+const double MOVE_INC = 1;
 const double PC_BOUNDS = 10;
 
 Player * plr;
@@ -108,6 +108,8 @@ void playerGameFrame(Player *p) {
 
 void initPlayer() {
 	plr = makePlayer__leaks();
+	if(!plr) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
 	playerSetFormationGoals(plr);
 	plr->squad = makeSquad__leaks();
+	if(!plr->squad) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
 }
