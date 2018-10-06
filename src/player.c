@@ -1,4 +1,5 @@
 #include <time.h>
+#include <assert.h>
 #include "common.h"
 #include "player.h"
 #include "assets.h"
@@ -60,6 +61,7 @@ void playerRenderFrame(Player *p) {
 	char frameFile[25];
 	sprintf(frameFile, "player-walk-sword-%02d.png", p->walkInc);
 	Sprite *player = makeFlippedSprite__leaks(frameFile, flip);
+	assert(player);
 	drawSprite(player, p->pos);
 	free(player);
 }
@@ -108,8 +110,8 @@ void playerGameFrame(Player *p) {
 
 void initPlayer() {
 	plr = makePlayer__leaks();
-	if(!plr) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
+	assert(plr);
 	playerSetFormationGoals(plr);
 	plr->squad = makeSquad__leaks();
-	if(!plr->squad) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
+	assert(plr->squad);
 }

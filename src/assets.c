@@ -17,22 +17,23 @@ static SoundAsset *sounds;
 static int soundCount;
 
 static Asset* makeAsset__leaks(AssetDef *definition) {
-    assert(renderer != NULL);
+    assert(renderer);
 
     //Infer asset path from current directory.
     char* workingPath = SDL_GetBasePath();
     char assetsFolder[] = "assets/";
     char *assetPath = combineStrings__leaks(workingPath, assetsFolder);
-    if(!assetPath) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
+    assert(assetPath);
 
     char *absPath = combineStrings__leaks(assetPath, definition->filename);
-    if(!absPath) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
-    if(!fileExists(absPath)) fatalError("Could not find Asset on disk", absPath);
+    assert(absPath);
+    assert(fileExists(absPath));
 
     //Load file from disk, build texture, and assign.
     SDL_Surface *original = IMG_Load(absPath);
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, original);
     Asset *asset = malloc(sizeof(Asset));
+    assert(asset);
     asset->key = definition->filename;
     asset->texture = texture;
 
@@ -152,10 +153,12 @@ static void loadImages(void) {
     //Allocate memory to Asset register.
     assetCount = sizeof(definitions) / sizeof(AssetDef);
     assets = malloc(sizeof(Asset) * assetCount);
+    assert(assets);
 
     //Build and load each Asset into the register.
-    for(int i=0; i < assetCount; i++) {
+    for(int i=0; i<assetCount; i++) {
         Asset *asset = makeAsset__leaks(&definitions[i]);
+        assert(asset);
         assets[i] = *asset;
         free(asset);
     }
@@ -214,11 +217,11 @@ SDL_Texture* getTexture(char *path) {
 
 SoundAsset getSound(char *path) {
     //Loop through register until key is found, or we've exhausted the array's iteration.
-    for(int i=0; i < soundCount; i++) {
+    for(int i=0; i<soundCount; i++) {
         if(strcmp(sounds[i].key, path) == 0)			//if strings match.
             return sounds[i];
     }
-    fatalError("Could not find Asset in register", path);
+    assert(false);
 }
 
 Asset* getAsset(char *path) {
@@ -227,10 +230,10 @@ Asset* getAsset(char *path) {
         if(strcmp(assets[i].key, path) == 0)			//if strings match.
             return &assets[i];
     }
-    fatalError("Could not find Asset in register", path);
+    assert(false);
 }
 
 void shutdownAssets(void) {
-    for(int i=0;i<assetCount;i++) free(&assets[i]);
-    for(int i=0; i < soundCount; i++) Mix_FreeChunk(sounds[i].sound);
+    for(int i=0; i<assetCount; i++) free(&assets[i]);
+    for(int i=0; i<soundCount; i++) Mix_FreeChunk(sounds[i].sound);
 }

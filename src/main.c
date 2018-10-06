@@ -51,16 +51,14 @@ static void initWindow(void) {
 
 static void shutdownWindow(void) {
   if(window == NULL) return;			//OK to call if not yet setup (an established subsystem pattern elsewhere)
-
   SDL_DestroyWindow(window);
   window = NULL;
 }
 
-static void shutdownMain(void) {
+static void shutdownMain() {
   shutdownAssets();
   shutdownRenderer();
   shutdownWindow();
-
   SDL_Quit();
 }
 

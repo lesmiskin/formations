@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "scene.h"
 #include "renderer.h"
 #include "common.h"
@@ -20,6 +21,7 @@ static void makeGroundTexture(Scene *scene) {
 
 	//Prepare sprite, and change the rendering target to our above texture.
 	Sprite* tile = makeSimpleSprite__leaks("grass.png");
+	assert(tile);
 	SDL_SetRenderTarget(renderer, groundTexture);
 
 	//Draw the tiles out onto the texture.
@@ -37,6 +39,7 @@ static void makeGroundTexture(Scene *scene) {
 	SDL_SetRenderTarget(renderer, renderBuffer);
 
 	scene->ground = makeSprite__leaks(groundTexture, zeroCoord(), SDL_FLIP_NONE);
+	assert(scene->ground);
 }
 
 void sceneAnimateFrame(Scene* scene) {
@@ -97,6 +100,7 @@ void sceneRenderFrame(Scene* scene) {
 //Should happen each time the scene is shown.
 void initScene() {
 	scene = malloc(sizeof(Scene));
+	assert(scene);
 	scene->size = makeCoord(16*30,9*30);
 	scene->tileSize = 8;
 	makeGroundTexture(scene);

@@ -4,7 +4,7 @@
 #include "common.h"
 #include "npc.h"
 
-#define MAX_ENEMY 15
+#define MAX_ENEMY 50
 
 typedef struct {
   int power;

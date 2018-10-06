@@ -1,4 +1,5 @@
 #include <limits.h>
+#include <assert.h>
 #include "squad.h"
 #include "common.h"
 #include "player.h"
@@ -11,7 +12,7 @@ static long lastIdleTime;
 
 int* aiGreedy__leaks(double *values, int nActors, int nTargets, GreedyGoal goal) {
   int *takenBy = malloc(sizeof(int)*nActors);
-  if(!takenBy) return NULL;
+  assert(takenBy);
 	memset(takenBy, -1, sizeof(*takenBy)*nActors);
   for(int iTarget=0;iTarget<nTargets;iTarget++) {
     double *value = NULL;
@@ -46,13 +47,15 @@ void squadSeekPosition(Squad *squad) {
 	}
   GreedyGoal goal = MIN;
   int *goals = aiGreedy__leaks((double *)ds,squad->size,8,goal);
-  if(!goals) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
+  assert(goals);
 	for(int i=0; i<squad->size; i++) {
     squad->members[i].goal = goals[i];
 		// home towards your goal
     Coord step = zeroCoord();
     if(ds[i][squad->members[i].goal]>11-((SquadAttributes*)squad->members[i].attr)->discipline)
-      step = getStep(squad->members[i].coord, plr->goals[squad->members[i].goal], ((SquadAttributes*)squad->members[i].attr)->speed);
+      step = getStep(squad->members[i].coord,
+                     plr->goals[squad->members[i].goal],
+                     ((SquadAttributes*)squad->members[i].attr)->speed);
 		Coord heading = deriveCoord(squad->members[i].coord, step.x, step.y);
 
     bool skipMove = false;
@@ -60,7 +63,9 @@ void squadSeekPosition(Squad *squad) {
       // if you would collide with an enemy, try to push instead of moving
       if(npcInBounds(&enemies[j], makeSquareBounds(heading,((SquadAttributes*)squad->members[i].attr)->size))) {
         skipMove = true;
-        if(chance(100)) push(&enemies[j], getAngle(squad->members[i].coord, enemies[j].coord), 4);
+        if(chance(100)) push(&enemies[j],
+                             getAngle(squad->members[i].coord, enemies[j].coord),
+                             ((SquadAttributes*)squad->members[i].attr)->power);
         break;
       }
     }
@@ -122,6 +127,7 @@ void squadRenderFrame(Squad *squad) {
 
 		sprintf(frameFile, frameFile, squad->members[i].animInc);
 		Sprite *sprite = makeFlippedSprite__leaks(frameFile, flip);
+    assert(sprite);
 		drawSprite(sprite, squad->members[i].coord);
     free(sprite);
 	}
@@ -136,12 +142,12 @@ Squad* makeSquad__leaks() {
   if(!members) return NULL;
   for(int i=0;i<squad->size;i++) {
     Npc *e  = makeNpc__leaks();
-    if(!e) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
+    assert(e);
     e->type = NPC_SQUAD;
     e->coord = plr->goals[i],
     e->goal = i,
     e->attr = malloc(sizeof(SquadAttributes));
-    if(!e->attr) return NULL;
+    assert(e->attr);
     ((SquadAttributes*)e->attr)->discipline = 10;
     ((SquadAttributes*)e->attr)->power = 4;
     ((SquadAttributes*)e->attr)->size = 10;

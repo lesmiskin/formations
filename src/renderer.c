@@ -19,6 +19,7 @@ Coord getTextureSize(SDL_Texture *texture) {
 
 Sprite* makeSprite__leaks(SDL_Texture *texture, Coord offset, SDL_RendererFlip flip) {
     Sprite *sprite = malloc(sizeof(Sprite));
+    assert(sprite);
     sprite->texture = texture;
     sprite->offset = offset;
     sprite->size = getTextureSize(texture);

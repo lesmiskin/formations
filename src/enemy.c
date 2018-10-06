@@ -1,3 +1,4 @@
+#include <assert.h>
 #include "enemy.h"
 #include "common.h"
 #include "npc.h"
@@ -46,7 +47,9 @@ void enemyGameFrame(void) {
 			for(int j=0; j<plr->squad->size; j++) {
 				if(npcInBounds(&plr->squad->members[j],makeSquareBounds(heading,((EnemyAttributes*)enemies[i].attr)->size))) {
 					skipMove = true;
-					if(chance(25)) push(&plr->squad->members[j],getAngle(enemies[i].coord,plr->squad->members[j].coord),((EnemyAttributes*)enemies[i].attr)->power);
+					if(chance(25)) push(&plr->squad->members[j],
+															getAngle(enemies[i].coord,plr->squad->members[j].coord),
+															((EnemyAttributes*)enemies[i].attr)->power);
 					break;
 				}
 			}
@@ -109,7 +112,7 @@ void enemyRenderFrame(void){
 
 		sprintf(frameFile, frameFile, enemies[i].animInc);
 		Sprite *sprite = makeFlippedSprite__leaks(frameFile, flip);
-		if(!sprite) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
+		assert(sprite);
 		drawSprite(sprite, enemies[i].coord);
 		free(sprite);
 
@@ -128,9 +131,10 @@ void spawnEnemy(int i) {
 	if(i >= MAX_ENEMY) return;
 
 	Npc *e = makeNpc__leaks();
-	if(!e) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
+	assert(e);
 	e->type = NPC_ENEMY;
 	e->attr = malloc(sizeof(EnemyAttributes));
+	assert(e->attr);
 	((EnemyAttributes*)e->attr)->size = 10;
 	((EnemyAttributes*)e->attr)->power = 3;
 	((EnemyAttributes*)e->attr)->speed = 1;
@@ -142,6 +146,7 @@ void spawnEnemy(int i) {
 
 void initEnemy() {
 	enemies = malloc(sizeof(Npc)*MAX_ENEMY);
+	assert(enemies);
 	memset(enemies,0,sizeof(Npc)*MAX_ENEMY);
 	for(int i=0; i<MAX_ENEMY; i++) {
 		spawnEnemy(i);
