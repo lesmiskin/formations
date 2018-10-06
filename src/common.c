@@ -92,13 +92,15 @@ Coord makeSafeCoord(double size) {
 
 		// dont spawn on the squad
 		for(int i=0;i<plr->squad->size;i++) {
-			if(rectInBounds(bounds,makeSquareBounds(plr->squad->members[i].coord,CHAR_BOUNDS))) { safe = false; break; }
+			if(!plr->squad->members[i].attr) continue;
+			if(npcInBounds(&plr->squad->members[i],bounds)) { safe = false; break; }
 		}
 		if(!safe) continue;
 
 		// dont spawn on an enemy
 		for(int i=0;i<MAX_ENEMY;i++) {
-			if(rectInBounds(bounds,makeSquareBounds(enemies[i].coord,CHAR_BOUNDS))) { safe = false; break; }
+			if(!enemies[i].attr) continue;
+			if(npcInBounds(&enemies[i],bounds)) { safe = false; break; }
 		}
 		if(!safe) continue;
 	}

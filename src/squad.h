@@ -5,12 +5,14 @@
 
 typedef struct {
   int discipline;
+  int power;
+  int size;
+  int speed;
 } SquadAttributes;
 
 typedef struct {
   int size;
   Npc *members;
-  SquadAttributes *attr;
 } Squad;
 
 typedef enum {

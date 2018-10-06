@@ -5,7 +5,7 @@
 
 typedef enum {
 	NPC_ENEMY,
-	NPC_SQUAD
+	NPC_SQUAD,
 } NpcType;
 
 typedef struct {

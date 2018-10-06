@@ -8,10 +8,10 @@
 #include "hud.h"
 
 #define WALK_FRAMES 4
+
 Npc enemies[MAX_ENEMY];
+
 static long lastIdleTime;
-const double ENEMY_SPEED = 1;
-const double CHAR_BOUNDS = 10;
 const double DIR_CHANGE = 250;
 bool showHomingLines = false;
 
@@ -28,13 +28,13 @@ void enemyGameFrame(void) {
 
 			Coord step;
 			//If we're roaming - head in that direction.
-			if(enemies[i].isRoaming) { step = makeStep(enemies[i].roamDir, ENEMY_SPEED); }
+			if(enemies[i].isRoaming) { step = makeStep(enemies[i].roamDir, ((EnemyAttributes*)enemies[i].attr)->speed); }
 			//Otherwise - home towards player.
-			else { step = getStep(enemies[i].coord, plr->pos, ENEMY_SPEED); }
+			else { step = getStep(enemies[i].coord, plr->pos, ((EnemyAttributes*)enemies[i].attr)->speed); }
 			heading = deriveCoord(enemies[i].coord, step.x, step.y);
 
 			// if you would collide with player, respawn
-			if(rectInBounds(makeSquareBounds(heading,CHAR_BOUNDS), makeSquareBounds(plr->pos, PC_BOUNDS))) {
+			if(rectInBounds(makeSquareBounds(heading,((EnemyAttributes*)enemies[i].attr)->size), makeSquareBounds(plr->pos, PC_BOUNDS))) {
 				plr->health -= 1;
 				// if(plr->health == 0) quit();
 				spawnEnemy(i);
@@ -43,9 +43,9 @@ void enemyGameFrame(void) {
 
 			// if you would collide with a squad member try to push instead of moving
 			for(int j=0; j<plr->squad->size; j++) {
-				if(npcInBounds(&plr->squad->members[j],makeSquareBounds(heading,CHAR_BOUNDS))) {
+				if(npcInBounds(&plr->squad->members[j],makeSquareBounds(heading,((EnemyAttributes*)enemies[i].attr)->size))) {
 					skipMove = true;
-					if(chance(25)) push(&plr->squad->members[j],getAngle(enemies[i].coord,plr->squad->members[j].coord),3);
+					if(chance(25)) push(&plr->squad->members[j],getAngle(enemies[i].coord,plr->squad->members[j].coord),((EnemyAttributes*)enemies[i].attr)->power);
 					break;
 				}
 			}
@@ -54,7 +54,7 @@ void enemyGameFrame(void) {
 			// roam if we would collide with another enemy
 			for(int j=0; j<MAX_ENEMY; j++) {
 				if(i == j) continue; //Don't collide with ourselves!
-				if(npcInBounds(&enemies[j], makeSquareBounds(heading, CHAR_BOUNDS))) {
+				if(npcInBounds(&enemies[j], makeSquareBounds(heading, ((EnemyAttributes*)enemies[j].attr)->size))) {
 					enemies[i].roamDir = degToRad(randomMq(0,360));
 					enemies[i].lastRoamTime = clock();
 					enemies[i].isRoaming = true;
@@ -113,11 +113,11 @@ void enemyRenderFrame(void){
 
 		if(showHomingLines){
 			drawLine(128,0,0,
-				makeCoord(enemies[i].coord.x-CHAR_BOUNDS/2, enemies[i].coord.y-CHAR_BOUNDS/2),
-				makeCoord(enemies[i].coord.x+CHAR_BOUNDS/2, enemies[i].coord.y+CHAR_BOUNDS/2));
+				makeCoord(enemies[i].coord.x-((EnemyAttributes*)enemies[i].attr)->size/2, enemies[i].coord.y-((EnemyAttributes*)enemies[i].attr)->size/2),
+				makeCoord(enemies[i].coord.x+((EnemyAttributes*)enemies[i].attr)->size/2, enemies[i].coord.y+((EnemyAttributes*)enemies[i].attr)->size/2));
 			drawLine(128,0,0,
-					makeCoord(enemies[i].coord.x+CHAR_BOUNDS/2, enemies[i].coord.y-CHAR_BOUNDS/2),
-					makeCoord(enemies[i].coord.x-CHAR_BOUNDS/2, enemies[i].coord.y+CHAR_BOUNDS/2));
+					makeCoord(enemies[i].coord.x+((EnemyAttributes*)enemies[i].attr)->size/2, enemies[i].coord.y-((EnemyAttributes*)enemies[i].attr)->size/2),
+					makeCoord(enemies[i].coord.x-((EnemyAttributes*)enemies[i].attr)->size/2, enemies[i].coord.y+((EnemyAttributes*)enemies[i].attr)->size/2));
 		}
 	}
 }
@@ -127,8 +127,12 @@ void spawnEnemy(int i) {
 	Npc *enemy = makeNpc__leaks();
 	if(!enemy) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
 	enemy->type = NPC_ENEMY;
-	enemy->attr = NULL;
-	enemy->coord = makeSafeCoord(CHAR_BOUNDS);
+	enemy->attr = malloc(sizeof(EnemyAttributes));
+	((EnemyAttributes*)enemy->attr)->size = 10;
+	((EnemyAttributes*)enemy->attr)->power = 3;
+	((EnemyAttributes*)enemy->attr)->speed = 1;
+	enemy->coord = makeSafeCoord(((EnemyAttributes*)enemy->attr)->size);
+	if(enemies[i].attr != NULL) { free(enemies[i].attr); }
 	enemies[i] = *enemy;
 	free(enemy);
 }

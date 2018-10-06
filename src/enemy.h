@@ -6,8 +6,11 @@
 
 #define MAX_ENEMY 15
 
-extern const double ENEMY_SPEED;
-extern const double CHAR_BOUNDS;
+typedef struct {
+  int power;
+  int size;
+  int speed;
+} EnemyAttributes;
 
 extern Npc enemies[MAX_ENEMY];
 

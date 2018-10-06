@@ -51,14 +51,14 @@ void squadSeekPosition(Squad *squad) {
     squad->members[i].goal = goals[i];
 		// home towards your goal
     Coord step = zeroCoord();
-    if(ds[i][squad->members[i].goal]>11-squad->attr->discipline)
-      step = getStep(squad->members[i].coord, plr->goals[squad->members[i].goal], ENEMY_SPEED);
+    if(ds[i][squad->members[i].goal]>11-((SquadAttributes*)squad->members[i].attr)->discipline)
+      step = getStep(squad->members[i].coord, plr->goals[squad->members[i].goal], ((SquadAttributes*)squad->members[i].attr)->speed);
 		Coord heading = deriveCoord(squad->members[i].coord, step.x, step.y);
 
     bool skipMove = false;
     for(int j=0; j<MAX_ENEMY; j++) {
       // if you would collide with an enemy, try to push instead of moving
-      if(rectInBounds(makeSquareBounds(heading,CHAR_BOUNDS), makeSquareBounds(enemies[j].coord, CHAR_BOUNDS))) {
+      if(npcInBounds(&enemies[j], makeSquareBounds(heading,((SquadAttributes*)squad->members[i].attr)->size))) {
         skipMove = true;
         if(chance(100)) push(&enemies[j], getAngle(squad->members[i].coord, enemies[j].coord), 4);
         break;
@@ -132,11 +132,6 @@ Squad* makeSquad__leaks() {
   if (!squad) return NULL;
   squad->size = 8;
 
-  SquadAttributes *attr = malloc(sizeof(SquadAttributes));
-  if(!attr) return NULL;
-  attr->discipline = 10;
-  squad->attr = attr;
-
   Npc *members = malloc(sizeof(Npc)*squad->size);
   if(!members) return NULL;
   for(int i=0;i<squad->size;i++) {
@@ -144,8 +139,13 @@ Squad* makeSquad__leaks() {
     if(!e) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
     e->type = NPC_SQUAD;
     e->coord = plr->goals[i],
-    e->attr = NULL;
-  	e->goal = i,
+    e->goal = i,
+    e->attr = malloc(sizeof(SquadAttributes));
+    if(!e->attr) return NULL;
+    ((SquadAttributes*)e->attr)->discipline = 10;
+    ((SquadAttributes*)e->attr)->power = 4;
+    ((SquadAttributes*)e->attr)->size = 10;
+    ((SquadAttributes*)e->attr)->speed = 1;
   	members[i] = *e;
   }
   squad->members = members;
@@ -154,8 +154,8 @@ Squad* makeSquad__leaks() {
 
 void freeSquad(Squad *squad) {
   for(int i=0;i<squad->size;i++) {
+    free((SquadAttributes*)squad->members[i].attr);
     free(&squad->members[i]);
   }
-  free(squad->attr);
   free(squad);
 }
