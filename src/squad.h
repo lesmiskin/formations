@@ -1,7 +1,7 @@
 #ifndef SQUAD_H
 #define SQUAD_H
 
-#include "enemy.h"
+#include "npc.h"
 
 typedef struct {
   int discipline;
@@ -9,7 +9,7 @@ typedef struct {
 
 typedef struct {
   int size;
-  Enemy *members;
+  Npc *members;
   SquadAttributes *attr;
 } Squad;
 
@@ -23,6 +23,5 @@ extern void squadAnimateFrame();
 extern void squadRenderFrame();
 extern Squad* makeSquad__leaks();
 extern void freeSquad(Squad*);
-extern void push(Enemy*, double, double);
 
 #endif

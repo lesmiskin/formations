@@ -8,21 +8,12 @@
 #include "assets.h"
 
 #define M_PI 3.14159265358979323846264338327950288
-static const double RADIAN_CIRCLE = 2 * M_PI;
 
 GameMode currentMode = MODE_GAME;
 
-double degToRad(double deg) {
-	return deg * M_PI / 180.0;
-}
-
-double radToDeg(double rad) {
-	return rad * 180 / M_PI;
-}
-
-void changeMode(GameMode newMode) {
-	currentMode = newMode;
-}
+double degToRad(double deg) { return deg * M_PI / 180.0; }
+double radToDeg(double rad) { return rad * 180 / M_PI; }
+void changeMode(GameMode newMode) { currentMode = newMode; }
 
 double calcDistance(Coord a, Coord b) {
     double xDist = a.x - b.x;
@@ -33,7 +24,6 @@ double calcDistance(Coord a, Coord b) {
 long ticsToMilliseconds(long tics) {
     //we want the duration version of the platform-independent seconds, so we / 1000.
     long platformAgnosticMilliseconds = CLOCKS_PER_SEC / 1000;
-
     return tics / platformAgnosticMilliseconds;
 }
 

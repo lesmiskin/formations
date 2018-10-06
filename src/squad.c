@@ -4,6 +4,7 @@
 #include "player.h"
 #include "renderer.h"
 #include "enemy.h"
+#include "npc.h"
 #include "input.h"
 
 static long lastIdleTime;
@@ -68,22 +69,6 @@ void squadSeekPosition(Squad *squad) {
     squad->members[i].coord = heading;
   }
   free(goals);
-}
-
-void push(Enemy *self, double angle, double power) {
-  Coord step = makeStep(angle,power);
-  Coord coord = deriveCoord(self->coord, step.x, step.y);
-
-  for(int i=0; i<MAX_ENEMY; i++) {
-    if(self == &enemies[i]) continue;
-    if(npcInBounds(&enemies[i],makeSquareBounds(coord,CHAR_BOUNDS))) {
-      if(self->type == NPC_ENEMY) {
-        angle = getAngle(self->coord,enemies[i].coord);
-        push(&enemies[i],angle,power);
-      }
-    }
-  }
-  self->coord = coord;
 }
 
 void squadSpecial(Squad *squad) {}
@@ -152,13 +137,14 @@ Squad* makeSquad__leaks() {
   attr->discipline = 10;
   squad->attr = attr;
 
-  Enemy *members = malloc(sizeof(Enemy)*squad->size);
+  Npc *members = malloc(sizeof(Npc)*squad->size);
   if(!members) return NULL;
   for(int i=0;i<squad->size;i++) {
-    Enemy *e  = makeEnemy__leaks();
+    Npc *e  = makeNpc__leaks();
     if(!e) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
     e->type = NPC_SQUAD;
     e->coord = plr->goals[i],
+    e->attr = NULL;
   	e->goal = i,
   	members[i] = *e;
   }
@@ -167,7 +153,9 @@ Squad* makeSquad__leaks() {
 }
 
 void freeSquad(Squad *squad) {
+  for(int i=0;i<squad->size;i++) {
+    free(&squad->members[i]);
+  }
   free(squad->attr);
-  free(squad->members);
   free(squad);
 }

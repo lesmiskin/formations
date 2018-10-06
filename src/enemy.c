@@ -1,5 +1,6 @@
 #include "enemy.h"
 #include "common.h"
+#include "npc.h"
 #include "player.h"
 #include "renderer.h"
 #include "assets.h"
@@ -7,7 +8,7 @@
 #include "hud.h"
 
 #define WALK_FRAMES 4
-Enemy enemies[MAX_ENEMY];
+Npc enemies[MAX_ENEMY];
 static long lastIdleTime;
 const double ENEMY_SPEED = 1;
 const double CHAR_BOUNDS = 10;
@@ -121,29 +122,20 @@ void enemyRenderFrame(void){
 	}
 }
 
-Enemy* makeEnemy__leaks() {
-	Enemy *enemy = malloc(sizeof(Enemy));
-	if(!enemy) return NULL;
-	enemy->animInc = randomMq(1,4);
-	return enemy;
-}
-
 void spawnEnemy(int i) {
 	if(i >= MAX_ENEMY) return;
-	Enemy *enemy = makeEnemy__leaks();
+	Npc *enemy = makeNpc__leaks();
 	if(!enemy) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
 	enemy->type = NPC_ENEMY;
+	enemy->attr = NULL;
 	enemy->coord = makeSafeCoord(CHAR_BOUNDS);
 	enemies[i] = *enemy;
 	free(enemy);
 }
 
 void initEnemy() {
-	memset(enemies, 0, sizeof(Enemy)*MAX_ENEMY);
+	memset(enemies, 0, sizeof(Npc)*MAX_ENEMY);
 	for(int i=0; i<MAX_ENEMY; i++) {
 		spawnEnemy(i);
 	}
 }
-
-bool npcColliesWith(Enemy *npc, Enemy *other) { return npcInBounds(npc,makeSquareBounds(other->coord,CHAR_BOUNDS)); }
-bool npcInBounds(Enemy *npc, Rect area) { return rectInBounds(makeSquareBounds(npc->coord,CHAR_BOUNDS),area); }
