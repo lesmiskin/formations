@@ -30,7 +30,8 @@ void enemyGameFrame(void) {
 			//If we're roaming - head in that direction.
 			if(enemies[i].isRoaming) {
 				step = makeStep(enemies[i].roamDir, ((EnemyAttributes*)enemies[i].attr)->speed);
-				enemies[i].goal = deriveCoord(enemies[i].coord, step.x*10, step.y*10);
+				Coord goal = makeStep(enemies[i].roamDir, ((EnemyAttributes*)enemies[i].attr)->speed*10);
+				enemies[i].goal = deriveCoord(enemies[i].coord, goal.x, goal.y);
 			}
 			//Otherwise - home towards player.
 			else {

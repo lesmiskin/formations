@@ -7,6 +7,7 @@
 Npc* makeNpc__leaks() {
 	Npc *npc = malloc(sizeof(Npc));
 	assert(npc);
+	npc->isRoaming = false;
 	npc->animInc = randomMq(1,4);
 	return npc;
 }
