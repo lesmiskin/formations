@@ -91,8 +91,8 @@ void enemyRenderFrame(void){
 		bool isUp = false;
 		bool isDown = false;
 
-		isUp = enemies[i].coord.y > plr->pos.y;
-		isDown = enemies[i].coord.y < plr->pos.y;
+		isUp   = enemies[i].coord.y-plr->pos.y > abs(enemies[i].coord.x-plr->pos.x);
+		isDown = plr->pos.y-enemies[i].coord.y > abs(enemies[i].coord.x-plr->pos.x);
 
 		char frameFile[28];
 
