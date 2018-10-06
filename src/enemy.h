@@ -12,7 +12,7 @@ typedef struct {
   int speed;
 } EnemyAttributes;
 
-extern Npc enemies[MAX_ENEMY];
+extern Npc *enemies;
 
 extern void enemyGameFrame();
 extern void enemyRenderFrame();

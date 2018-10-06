@@ -14,11 +14,10 @@ typedef struct {
 } SoundAsset;
 
 extern void initAssets(void);
-extern SDL_Texture *getTexture(char *path);
-extern Asset getAsset(char *path);
-extern void shutdownAssets(void);
-extern SoundAsset getSound(char *path);
-extern void play(char* path);
-extern SDL_Texture *getTexture(char *path);
+extern SDL_Texture* getTexture(char*);
+extern Asset* getAsset(char*);
+extern void play(char*);
+extern SoundAsset getSound(char*);
+extern void shutdownAssets();
 
 #endif

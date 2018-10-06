@@ -3,7 +3,7 @@
 #include "renderer.h"
 
 typedef struct {
-    char* filename;
+  char* filename;
 } AssetDef;
 
 typedef struct {
@@ -11,68 +11,37 @@ typedef struct {
     int volume;
 } SoundDef;
 
-static char *assetPath;
 static Asset *assets;
 static int assetCount;
 static SoundAsset *sounds;
 static int soundCount;
 
-SoundAsset getSound(char *path) {
-    //Loop through register until key is found, or we've exhausted the array's iteration.
-    for(int i=0; i < soundCount; i++) {
-        if(strcmp(sounds[i].key, path) == 0)			//if strings match.
-            return sounds[i];
-    }
-
-    fatalError("Could not find Asset in register", path);
-}
-
-static Asset makeAsset(AssetDef definition) {
+static Asset* makeAsset__leaks(AssetDef *definition) {
     assert(renderer != NULL);
 
-    char *absPath = combineStrings__leaks(assetPath, definition.filename);
+    //Infer asset path from current directory.
+    char* workingPath = SDL_GetBasePath();
+    char assetsFolder[] = "assets/";
+    char *assetPath = combineStrings__leaks(workingPath, assetsFolder);
+    if(!assetPath) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
+
+    char *absPath = combineStrings__leaks(assetPath, definition->filename);
     if(!absPath) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
-    //Check existence on file system.
-    if(!fileExists(absPath))
-        fatalError("Could not find Asset on disk", absPath);
+    if(!fileExists(absPath)) fatalError("Could not find Asset on disk", absPath);
 
-    //Load file from disk.
+    //Load file from disk, build texture, and assign.
     SDL_Surface *original = IMG_Load(absPath);
-    free(absPath);
-
-    Asset asset = {	definition.filename	};
-
-    //Build initial texture and assign.
     SDL_Texture *texture = SDL_CreateTextureFromSurface(renderer, original);
-
-    asset.texture = texture;
+    Asset *asset = malloc(sizeof(Asset));
+    asset->key = definition->filename;
+    asset->texture = texture;
 
     //Free up RAM used for original surface object.
+    free(assetPath);
+    free(absPath);
     free(original);
 
     return asset;
-}
-
-SDL_Texture *getTexture(char *path) {
-    return getAsset(path).texture;
-}
-Asset getAsset(char *path) {
-    //Loop through register until key is found, or we've exhausted the array's iteration.
-    for(int i=0; i < assetCount; i++) {
-        if(strcmp(assets[i].key, path) == 0)			//if strings match.
-            return assets[i];
-    }
-
-    fatalError("Could not find Asset in register", path);
-}
-
-void shutdownAssets(void) {
-    free(assetPath);
-    free(assets);
-
-    for(int i=0; i < soundCount; i++) Mix_FreeChunk(sounds[i].sound);
-
-    free(sounds);
 }
 
 static void loadImages(void) {
@@ -180,19 +149,15 @@ static void loadImages(void) {
         { "font-bang.png" },
     };
 
-    //Infer asset path from current directory.
-    char* workingPath = SDL_GetBasePath();
-    char assetsFolder[] = "assets/";
-    assetPath = combineStrings__leaks(workingPath, assetsFolder);
-    if(!assetPath) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
-
     //Allocate memory to Asset register.
     assetCount = sizeof(definitions) / sizeof(AssetDef);
     assets = malloc(sizeof(Asset) * assetCount);
 
     //Build and load each Asset into the register.
     for(int i=0; i < assetCount; i++) {
-        assets[i] = makeAsset(definitions[i]);
+        Asset *asset = makeAsset__leaks(&definitions[i]);
+        assets[i] = *asset;
+        free(asset);
     }
 }
 
@@ -205,6 +170,12 @@ static void loadSounds(void) {
 
     soundCount = sizeof(defs) / sizeof(SoundDef);
     sounds = malloc(sizeof(SoundAsset) * soundCount);
+
+    //Infer asset path from current directory.
+    char* workingPath = SDL_GetBasePath();
+    char assetsFolder[] = "assets/";
+    char *assetPath = combineStrings__leaks(workingPath, assetsFolder);
+    if(!assetPath) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
 
     for(int i=0; i < soundCount; i++) {
         //Load music.
@@ -224,6 +195,8 @@ static void loadSounds(void) {
         };
         sounds[i] = snd;
     }
+
+    free(assetPath);
 }
 
 void initAssets(void) {
@@ -233,4 +206,31 @@ void initAssets(void) {
 
 void play(char* path) {
     Mix_PlayChannel(-1, getSound(path).sound, 0);
+}
+
+SDL_Texture* getTexture(char *path) {
+    return getAsset(path)->texture;
+}
+
+SoundAsset getSound(char *path) {
+    //Loop through register until key is found, or we've exhausted the array's iteration.
+    for(int i=0; i < soundCount; i++) {
+        if(strcmp(sounds[i].key, path) == 0)			//if strings match.
+            return sounds[i];
+    }
+    fatalError("Could not find Asset in register", path);
+}
+
+Asset* getAsset(char *path) {
+    //Loop through register until key is found, or we've exhausted the array's iteration.
+    for(int i=0; i < assetCount; i++) {
+        if(strcmp(assets[i].key, path) == 0)			//if strings match.
+            return &assets[i];
+    }
+    fatalError("Could not find Asset in register", path);
+}
+
+void shutdownAssets(void) {
+    for(int i=0;i<assetCount;i++) free(&assets[i]);
+    for(int i=0; i < soundCount; i++) Mix_FreeChunk(sounds[i].sound);
 }

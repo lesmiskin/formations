@@ -6,10 +6,11 @@
 #include "assets.h"
 #include "time.h"
 #include "hud.h"
+#include "scene.h"
 
 #define WALK_FRAMES 4
 
-Npc enemies[MAX_ENEMY];
+Npc *enemies;
 
 static long lastIdleTime;
 const double DIR_CHANGE = 250;
@@ -87,7 +88,6 @@ void enemyRenderFrame(void){
 	for(int i=0; i<MAX_ENEMY; i++) {
 		if(enemies[i].coord.x == 0) continue;
 
-		Sprite sprite;
 		SDL_RendererFlip flip = SDL_FLIP_NONE;
 		bool isUp = false;
 		bool isDown = false;
@@ -108,8 +108,10 @@ void enemyRenderFrame(void){
 		}
 
 		sprintf(frameFile, frameFile, enemies[i].animInc);
-		sprite = makeFlippedSprite(frameFile, flip);
+		Sprite *sprite = makeFlippedSprite__leaks(frameFile, flip);
+		if(!sprite) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
 		drawSprite(sprite, enemies[i].coord);
+		free(sprite);
 
 		if(showHomingLines){
 			drawLine(128,0,0,
@@ -124,21 +126,23 @@ void enemyRenderFrame(void){
 
 void spawnEnemy(int i) {
 	if(i >= MAX_ENEMY) return;
-	Npc *enemy = makeNpc__leaks();
-	if(!enemy) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
-	enemy->type = NPC_ENEMY;
-	enemy->attr = malloc(sizeof(EnemyAttributes));
-	((EnemyAttributes*)enemy->attr)->size = 10;
-	((EnemyAttributes*)enemy->attr)->power = 3;
-	((EnemyAttributes*)enemy->attr)->speed = 1;
-	enemy->coord = makeSafeCoord(((EnemyAttributes*)enemy->attr)->size);
-	if(enemies[i].attr != NULL) { free(enemies[i].attr); }
-	enemies[i] = *enemy;
-	free(enemy);
+
+	Npc *e = makeNpc__leaks();
+	if(!e) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
+	e->type = NPC_ENEMY;
+	e->attr = malloc(sizeof(EnemyAttributes));
+	((EnemyAttributes*)e->attr)->size = 10;
+	((EnemyAttributes*)e->attr)->power = 3;
+	((EnemyAttributes*)e->attr)->speed = 1;
+	e->coord = makeSafeCoord(scene,((EnemyAttributes*)e->attr)->size);
+
+	if(enemies[i].attr != NULL) free((EnemyAttributes*)enemies[i].attr);
+	enemies[i] = *e;
 }
 
 void initEnemy() {
-	memset(enemies, 0, sizeof(Npc)*MAX_ENEMY);
+	enemies = malloc(sizeof(Npc)*MAX_ENEMY);
+	memset(enemies,0,sizeof(Npc)*MAX_ENEMY);
 	for(int i=0; i<MAX_ENEMY; i++) {
 		spawnEnemy(i);
 	}

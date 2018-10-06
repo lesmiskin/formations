@@ -14,16 +14,19 @@ void initHud(void) {
 	for(int i=0; i < 10; i++) {
 		char textureName[50];
 		sprintf(textureName, "font-%02d.png", i);
-		letters[i] = makeSimpleSprite(textureName);
+		Sprite *sprite = makeSimpleSprite__leaks(textureName);
+		if(!sprite) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
+		letters[i] = *sprite;
+		free(sprite);
 	}
 }
 
 void writeText(int amount, Coord pos) {
 	if(amount == 0) {
-		drawSprite(letters[0], pos);
+		drawSprite(&letters[0], pos);
 	}else{
 		while(amount != 0) {
-			drawSprite(letters[amount % 10], pos);
+			drawSprite(&letters[amount % 10], pos);
 			amount /= 10;
 			pos.x -= LETTER_WIDTH;
 		}
@@ -43,7 +46,7 @@ void writeFont(char *text, Coord pos) {
 				sprintf(fontFile, "font-%c.png", text[i]);
 			}
 
-			Sprite sprite = makeSimpleSprite(fontFile);
+			Sprite* sprite = makeSimpleSprite__leaks(fontFile);
 			drawSprite(sprite, makeCoord(pos.x, pos.y));
 
 			if(text[i] == 'q') {
@@ -57,8 +60,9 @@ void writeFont(char *text, Coord pos) {
 			}else if(text[i] == 'i' || text[i] == 'e') {
 				pos.x += 3;
 			}else{
-				pos.x += sprite.size.x - 1;
+				pos.x += sprite->size.x - 1;
 			}
+			free(sprite);
 		}else{
 			pos.x += 2;
 		}
@@ -69,6 +73,6 @@ void hudGameFrame(void) {
 }
 
 void hudRenderFrame(void) {
-	writeText(plr->health, makeCoord(50, 10));
-	writeFont("health", makeCoord(10, 10));
+	// writeText(plr->health, makeCoord(50, 10));
+	// writeFont("health", makeCoord(10, 10));
 }

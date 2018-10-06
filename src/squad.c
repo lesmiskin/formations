@@ -96,7 +96,6 @@ void squadRenderFrame(Squad *squad) {
 	for(int i=0; i < squad->size; i++) {
 		if(squad->members[i].coord.x == 0) continue;
 
-		Sprite sprite;
 		SDL_RendererFlip flip = SDL_FLIP_NONE;
 		bool isUp = false;
 		bool isDown = false;
@@ -122,8 +121,9 @@ void squadRenderFrame(Squad *squad) {
 		}
 
 		sprintf(frameFile, frameFile, squad->members[i].animInc);
-		sprite = makeFlippedSprite(frameFile, flip);
+		Sprite *sprite = makeFlippedSprite__leaks(frameFile, flip);
 		drawSprite(sprite, squad->members[i].coord);
+    free(sprite);
 	}
 }
 

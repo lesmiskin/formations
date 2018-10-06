@@ -6,45 +6,29 @@
 #include "enemy.h"
 #include "player.h"
 
-#define MAX_PROPS 4
+Scene *scene;
 
-typedef enum {
-	PROP_GRAVESTONE ,
-	PROP_GRAVESTONE_CROSS,
-//	PROP_GRAVE =1,
-	PROP_COFFIN
-} PropType;
-
-typedef struct {
-	PropType type;
-	Coord coord;
-	bool coffinOpened;
-} Prop;
-
-const int TILE_SIZE = 8;
-static Sprite ground;
-static Prop props[MAX_PROPS];
-
-static void makeGroundTexture() {
+static void makeGroundTexture(Scene *scene) {
 	//Init the SDL texture
 	SDL_Texture *groundTexture = SDL_CreateTexture(
 		renderer,
 		SDL_PIXELFORMAT_RGB24,
 		SDL_TEXTUREACCESS_TARGET,
-		(int)640,
-		(int)480
+		(int)scene->size.x,
+		(int)scene->size.y
 	);
 
 	//Prepare sprite, and change the rendering target to our above texture.
-	Sprite tile = makeSimpleSprite("grass.png");
+	Sprite* tile = makeSimpleSprite__leaks("grass.png");
 	SDL_SetRenderTarget(renderer, groundTexture);
 
 	//Draw the tiles out onto the texture.
-	for(int x=0; x < 320; x += TILE_SIZE) {
-		for (int y = 0; y < 240; y += TILE_SIZE) {
+	for(int x=0; x<scene->size.x+scene->tileSize; x+=scene->tileSize) {
+		for (int y=0; y<scene->size.y+scene->tileSize; y+=scene->tileSize) {
 			drawSprite(tile, makeCoord(x, y));
 		}
 	}
+	free(tile);
 
 	//Darken
 	SDL_SetTextureColorMod(groundTexture, 64, 64, 128);
@@ -52,13 +36,13 @@ static void makeGroundTexture() {
 	//Switch rendering back to the normal renderBuffer target.
 	SDL_SetRenderTarget(renderer, renderBuffer);
 
-	ground = makeSprite(groundTexture, zeroCoord(), SDL_FLIP_NONE);
+	scene->ground = makeSprite__leaks(groundTexture, zeroCoord(), SDL_FLIP_NONE);
 }
 
-void sceneAnimateFrame() {
+void sceneAnimateFrame(Scene* scene) {
 }
 
-void sceneGameFrame() {
+void sceneGameFrame(Scene* scene) {
 	// for(int i=0; i < MAX_PROPS; i++) {
 	// 	if(	props[i].type == PROP_COFFIN &&
 	// 		!props[i].coffinOpened &&
@@ -73,8 +57,8 @@ void sceneGameFrame() {
 	// }
 }
 
-void sceneRenderFrame() {
-	drawSprite(ground, makeCoord(320, 240));
+void sceneRenderFrame(Scene* scene) {
+	drawSprite(scene->ground, makeCoord(scene->size.x / 2, scene->size.y / 2));
 //
 // 	for(int i=0; i < MAX_PROPS; i++) {
 // 		Sprite sprite;
@@ -112,17 +96,37 @@ void sceneRenderFrame() {
 
 //Should happen each time the scene is shown.
 void initScene() {
-	makeGroundTexture();
+	scene = malloc(sizeof(Scene));
+	scene->size = makeCoord(16*30,9*30);
+	scene->tileSize = 8;
+	makeGroundTexture(scene);
+}
 
-	for(int i=0; i < MAX_PROPS; i++) {
-		Prop p = {
-			(PropType)randomMq(0, PROP_COFFIN),
-			makeCoord(
-				randomMq(0, screenBounds.x),
-				randomMq(0, screenBounds.y)
-			),
-			false
-		};
-		props[i] = p;
+Coord makeSafeCoord(Scene *scene, double size) {
+	Coord coord;
+	bool safe = false;
+	while(!safe) {
+		safe = true;
+		coord = makeCoord(randomMq(0, scene->size.x),randomMq(0, scene->size.y));
+		Rect bounds = makeSquareBounds(coord, size);
+
+		// dont spawn on the player
+		if(rectInBounds(bounds,makeSquareBounds(plr->pos,PC_BOUNDS))) { safe = false; }
+		if(!safe) continue;
+
+		// dont spawn on the squad
+		for(int i=0;i<plr->squad->size;i++) {
+			if(!plr->squad->members[i].attr) continue;
+			if(npcInBounds(&plr->squad->members[i],bounds)) { safe = false; break; }
+		}
+		if(!safe) continue;
+
+		// dont spawn on an enemy
+		for(int i=0;i<MAX_ENEMY;i++) {
+			if(!enemies[i].attr) continue;
+			if(npcInBounds(&enemies[i],bounds)) { safe = false; break; }
+		}
+		if(!safe) continue;
 	}
+	return coord;
 }

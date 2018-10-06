@@ -59,9 +59,9 @@ void playerRenderFrame(Player *p) {
 
 	char frameFile[25];
 	sprintf(frameFile, "player-walk-sword-%02d.png", p->walkInc);
-	Sprite player = makeFlippedSprite(frameFile, flip);
-
+	Sprite *player = makeFlippedSprite__leaks(frameFile, flip);
 	drawSprite(player, p->pos);
+	free(player);
 }
 
 void playerGameFrame(Player *p) {

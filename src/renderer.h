@@ -19,12 +19,12 @@ extern Coord screenBounds;
 extern void initRenderer();
 extern void shutdownRenderer();
 extern void updateCanvas();
-extern Sprite makeSprite(SDL_Texture *texture, Coord offset, SDL_RendererFlip flip);
-extern void drawSpriteFull(Sprite sprite, Coord origin, double scale, double angle);
-extern void drawSprite(Sprite sprite, Coord origin);
-extern Coord getTextureSize(SDL_Texture *texture);
-extern Sprite makeFlippedSprite(char *textureName, SDL_RendererFlip flip);
-extern Sprite makeSimpleSprite(char *textureName);
-extern void drawLine(int r, int g, int b, Coord start, Coord end);
+extern Sprite* makeSprite__leaks(SDL_Texture*, Coord, SDL_RendererFlip);
+extern void drawSpriteFull(Sprite*, Coord, double, double);
+extern void drawSprite(Sprite*, Coord);
+extern Coord getTextureSize(SDL_Texture*);
+extern Sprite* makeFlippedSprite__leaks(char*, SDL_RendererFlip);
+extern Sprite* makeSimpleSprite__leaks(char*);
+extern void drawLine(int, int, int, Coord, Coord);
 
 #endif

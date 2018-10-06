@@ -30,7 +30,6 @@ extern void changeMode(GameMode);
 extern SDL_Window *window;
 extern bool running;
 extern Coord makeCoord(double x, double y);
-extern Coord makeSafeCoord(double);
 extern Coord mergeCoord(Coord original, Coord derive);
 extern Coord deriveCoord(Coord original, double xOffset, double yOffset);
 extern Coord zeroCoord();

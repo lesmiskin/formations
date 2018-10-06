@@ -5,67 +5,68 @@
 SDL_Texture *renderBuffer;
 SDL_Renderer *renderer = NULL;
 static int renderScale;
-static const int BASE_SCALE_WIDTH = 160;
-static const int BASE_SCALE_HEIGHT = 90;
-static const double PIXEL_SCALE = 1;				//pixel doubling for assets.
-Coord pixelGrid;					    			//helps aligning things to the tiled background.
+static const int BASE_SCALE_WIDTH = 16*30;
+static const int BASE_SCALE_HEIGHT = 9*30;
+static const double PIXEL_SCALE = 1; //pixel doubling for assets.
+Coord pixelGrid;					    			 //helps aligning things to the tiled background.
 Coord screenBounds;
 
 Coord getTextureSize(SDL_Texture *texture) {
     int x, y;
     SDL_QueryTexture(texture, NULL, NULL, &x, &y);
-
     return makeCoord(x, y);
 }
 
-Sprite makeSprite(SDL_Texture *texture, Coord offset, SDL_RendererFlip flip) {
-    Sprite sprite = {
-            texture, offset, getTextureSize(texture), flip
-    };
+Sprite* makeSprite__leaks(SDL_Texture *texture, Coord offset, SDL_RendererFlip flip) {
+    Sprite *sprite = malloc(sizeof(Sprite));
+    sprite->texture = texture;
+    sprite->offset = offset;
+    sprite->size = getTextureSize(texture);
+    sprite->flip = flip;
     return sprite;
 }
 
-Sprite makeFlippedSprite(char *textureName, SDL_RendererFlip flip) {
+Sprite* makeFlippedSprite__leaks(char *textureName, SDL_RendererFlip flip) {
     SDL_Texture *texture = getTexture(textureName);
-    return makeSprite(texture, zeroCoord(), flip);
+    return makeSprite__leaks(texture, zeroCoord(), flip);
 }
 
-Sprite makeSimpleSprite(char *textureName) {
+Sprite* makeSimpleSprite__leaks(char *textureName) {
 	SDL_Texture *texture = getTexture(textureName);
-	return makeSprite(texture, zeroCoord(), SDL_FLIP_NONE);
+	return makeSprite__leaks(texture, zeroCoord(), SDL_FLIP_NONE);
 }
 
-void drawSpriteFull(Sprite sprite, Coord origin, double scale, double angle) {
+void drawSpriteFull(Sprite *sprite, Coord origin, double scale, double angle) {
     // Ensure we're always calling this with an initialised sprite_t.
-    assert(sprite.texture != NULL);
+    assert(sprite->texture != NULL);
 
     // Offsets should be relative to image pixel metrics, not screen metrics.
-    int offsetX = sprite.offset.x;
-    int offsetY = sprite.offset.y;
+    int offsetX = sprite->offset.x;
+    int offsetY = sprite->offset.y;
 
     // We adjust the offset to ensure all sprites are drawn centered at their coord points
-    offsetX -= (sprite.size.x / 2);
-    offsetY -= (sprite.size.y / 2);
+    offsetX -= (sprite->size.x / 2);
+    offsetY -= (sprite->size.y / 2);
 
     // Configure target location output sprite_t size, adjusting the latter for the constant sprite_t scaling factor.
     SDL_Rect destination  = {
         (origin.x + offsetX),
         (origin.y + offsetY),
-        sprite.size.x,
-        sprite.size.y
+        sprite->size.x,
+        sprite->size.y
     };
 
     //Rotation
     SDL_Point rotateOrigin = { 0, 0 };
     if(angle > 0) {
-        rotateOrigin.x = (int)sprite.size.x / 2;
-        rotateOrigin.y = (int)sprite.size.y / 2;
+        rotateOrigin.x = (int)sprite->size.x / 2;
+        rotateOrigin.y = (int)sprite->size.y / 2;
     };
 
-    SDL_RenderCopyEx(renderer, sprite.texture, NULL, &destination, angle, &rotateOrigin, sprite.flip);
+    SDL_RenderCopyEx(renderer, sprite->texture, NULL, &destination, angle, &rotateOrigin, sprite->flip);
 }
 
-void drawSprite(Sprite sprite, Coord origin) {
+void drawSprite(Sprite *sprite, Coord origin) {
     drawSpriteFull(sprite, origin, 1, 0);
 }
 
@@ -90,8 +91,8 @@ void initRenderer(void) {
 
     //Pixel grid is the blocky rendering grid we use to help tile things (i.e. backgrounds).
     pixelGrid = makeCoord(
-        BASE_SCALE_WIDTH / renderScale,
-        BASE_SCALE_HEIGHT / renderScale
+        (double)BASE_SCALE_WIDTH / renderScale,
+        (double)BASE_SCALE_HEIGHT / renderScale
     );
 
     //IMPORTANT: Make a texture which we render all contents to, then efficiently scale just this one
@@ -100,8 +101,8 @@ void initRenderer(void) {
         renderer,
         SDL_PIXELFORMAT_RGB24,
         SDL_TEXTUREACCESS_TARGET,
-        (int)ceil(pixelGrid.x),
-        (int)ceil(pixelGrid.y)
+        (int)pixelGrid.x,
+        (int)pixelGrid.y
     );
 
     //Rachaie's background.

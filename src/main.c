@@ -89,7 +89,7 @@ int main()  {
     //Game frame
     if(timer(&lastGameFrameTime, GAME_HZ)) {
       pollInput();
-      sceneGameFrame();
+      sceneGameFrame(scene);
       playerGameFrame(plr);
       squadGameFrame(plr->squad);
       enemyGameFrame();
@@ -101,13 +101,13 @@ int main()  {
     if(timer(&lastAnimFrameTime, ANIMATION_HZ)) {
       enemyAnimateFrame();
   	  squadAnimateFrame(plr->squad);
-      sceneAnimateFrame();
+      sceneAnimateFrame(scene);
       playerAnimateFrame(plr);
     }
 
     //Renderer frame
     if(timer(&lastRenderFrameTime, RENDER_HZ)) {
-      sceneRenderFrame();
+      sceneRenderFrame(scene);
       playerRenderFrame(plr);
       squadRenderFrame(plr->squad);
       enemyRenderFrame();

@@ -78,35 +78,6 @@ Coord makeCoord(double x, double y) {
     return coord;
 }
 
-Coord makeSafeCoord(double size) {
-	Coord coord;
-	bool safe = false;
-	while(!safe) {
-		safe = true;
-		coord = makeCoord(randomMq(0, screenBounds.x),randomMq(0, screenBounds.y));
-		Rect bounds = makeSquareBounds(coord, size);
-
-		// dont spawn on the player
-		if(rectInBounds(bounds,makeSquareBounds(plr->pos,PC_BOUNDS))) { safe = false; }
-		if(!safe) continue;
-
-		// dont spawn on the squad
-		for(int i=0;i<plr->squad->size;i++) {
-			if(!plr->squad->members[i].attr) continue;
-			if(npcInBounds(&plr->squad->members[i],bounds)) { safe = false; break; }
-		}
-		if(!safe) continue;
-
-		// dont spawn on an enemy
-		for(int i=0;i<MAX_ENEMY;i++) {
-			if(!enemies[i].attr) continue;
-			if(npcInBounds(&enemies[i],bounds)) { safe = false; break; }
-		}
-		if(!safe) continue;
-	}
-	return coord;
-}
-
 int randomMq(int min, int max) {
     return (rand() % (max + 1 - min)) + min;
 }
@@ -141,14 +112,10 @@ bool chance(int probability) {
 }
 
 bool rectInBounds(Rect a, Rect b) {
-	return inBounds(makeCoord(a.x,a.y), b)
-			|| inBounds(makeCoord(a.x,a.y+a.height), b)
-			|| inBounds(makeCoord(a.x+a.width,a.y), b)
-			|| inBounds(makeCoord(a.x+a.width,a.y+a.height), b);
-			// || inBounds(makeCoord(b.x,b.y), a)
-			// || inBounds(makeCoord(b.x,b.y+b.height), a)
-			// || inBounds(makeCoord(b.x+b.width,b.y), a)
- 			// || inBounds(makeCoord(b.x+b.width,b.y+b.height), a);
+	return !(a.x > b.x+b.width
+      || a.y > b.y+b.height
+      || b.x > a.x+a.width
+      || b.y > a.y+b.height);
 }
 
 bool inBounds(Coord point, Rect area) {
