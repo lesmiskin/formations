@@ -26,7 +26,7 @@ Coord formationGetPosition(Formation *f, int i) {
 	Coord p = makeCoord(x*c-y*s,x*s+y*c);
 
 	// translate
-	return makeCoord(plr->pos.x + p.x, plr->pos.y + p.y);
+	return makeCoord(plr->pos->origin.x + p.x, plr->pos->origin.y + p.y);
 }
 
 void formationSetPositions(Formation *f, int formation) {
@@ -53,9 +53,12 @@ Formation* makeFormation__leaks(int formation) {
 Player* makePlayer__leaks() {
 	plr = malloc(sizeof(Player));
 	assert(plr);
-	plr->pos = makeCoord(100,50);
 	plr->health = 10;
 	plr->walkInc = 1;
+
+	plr->pos = malloc(sizeof(Position));
+	assert(plr->pos);
+	plr->pos->origin = makeCoord(100,50);
 
 	plr->formation = makeFormation__leaks(1);
 	assert(plr->formation);
@@ -76,7 +79,7 @@ void playerRenderFrame(Player *p) {
 	sprintf(frameFile, "player-walk-sword-%02d.png", p->walkInc);
 	Sprite *player = makeFlippedSprite__leaks(frameFile, flip);
 	assert(player);
-	drawSprite(player, p->pos);
+	drawSprite(player, p->pos->origin);
 	free(player);
 }
 
@@ -96,11 +99,11 @@ void playerGameFrame(Player *p) {
 		(checkCommand(CMD_PLAYER_UP) ? 1 : 0) * -MOVE_INC
 	+ (checkCommand(CMD_PLAYER_DOWN) ? 1 : 0) * MOVE_INC);
 	Coord step = getStep(zeroCoord(),goal,MOVE_INC);
-	Coord heading = deriveCoord(p->pos,step.x,step.y);
+	Coord heading = deriveCoord(p->pos->origin,step.x,step.y);
 
 	// no walking off the screen!
-	p->pos.x = fmin(screenBounds.x-PC_BOUNDS/2,fmax(0+PC_BOUNDS/2,heading.x));
-	p->pos.y = fmin(screenBounds.y-PC_BOUNDS/2,fmax(0+PC_BOUNDS/2,heading.y));
+	p->pos->origin.x = fmin(screenBounds.x-PC_BOUNDS/2,fmax(0+PC_BOUNDS/2,heading.x));
+	p->pos->origin.y = fmin(screenBounds.y-PC_BOUNDS/2,fmax(0+PC_BOUNDS/2,heading.y));
 
 	// We still turn the player sprite where we can, even if we're hard
 	// up against a screen bound.
@@ -113,10 +116,10 @@ void playerGameFrame(Player *p) {
 		p->dir = true;
 		p->walking = true;
 	}
-	if (checkCommand(CMD_PLAYER_UP) && p->pos.y > 0) {
+	if (checkCommand(CMD_PLAYER_UP) && p->pos->origin.y > 0) {
 		p->walking = true;
 	}
-	if (checkCommand(CMD_PLAYER_DOWN) && p->pos.y < screenBounds.y) {
+	if (checkCommand(CMD_PLAYER_DOWN) && p->pos->origin.y < screenBounds.y) {
 		p->walking = true;
 	}
 }
@@ -130,8 +133,8 @@ void initPlayer() {
 
 void freePlayer(Player *plr) {
 	freeSquad(plr->squad);
-	for(int i=0;i<plr->formation->size;i++) {
-		free(&plr->formation->positions[i]);
-	}
+	if(plr->formation->positions) free(plr->formation->positions);
+	if(plr->formation) free(plr->formation);
+	if(plr->pos) free(plr->pos);
 	free(plr);
 }

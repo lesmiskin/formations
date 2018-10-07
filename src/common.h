@@ -8,6 +8,12 @@ typedef struct {
   double x, y;
 } Coord;
 
+typedef struct {
+  Coord origin;
+  double angle;
+  double velocity;
+} Position;
+
 typedef enum {
 	MODE_GAME,
 } GameMode;

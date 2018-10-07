@@ -12,10 +12,10 @@ typedef struct {
 } Formation;
 
 typedef struct {
-  Coord pos;
-  int health;
+  Position *pos;
   Formation *formation;
   Squad *squad;
+  int health;
   bool dir;
   bool walking;
   int walkInc;

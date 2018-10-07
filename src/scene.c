@@ -115,7 +115,7 @@ Coord makeSafeCoord(Scene *scene, double size) {
 		Rect bounds = makeSquareBounds(coord, size);
 
 		// dont spawn on the player
-		if(rectInBounds(bounds,makeSquareBounds(plr->pos,PC_BOUNDS))) { safe = false; }
+		if(rectInBounds(bounds,makeSquareBounds(plr->pos->origin,PC_BOUNDS))) { safe = false; }
 		if(!safe) continue;
 
 		// dont spawn on the squad

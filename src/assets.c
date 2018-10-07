@@ -234,6 +234,6 @@ Asset* getAsset(char *path) {
 }
 
 void shutdownAssets(void) {
-    for(int i=0; i<assetCount; i++) free(&assets[i]);
-    for(int i=0; i<soundCount; i++) Mix_FreeChunk(sounds[i].sound);
+  free(assets);
+  for(int i=0; i<soundCount; i++) Mix_FreeChunk(sounds[i].sound);
 }

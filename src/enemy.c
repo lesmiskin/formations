@@ -31,17 +31,17 @@ void enemyGameFrame(void) {
 			if(enemies[i].isRoaming) {
 				step = makeStep(enemies[i].roamDir, ((EnemyAttributes*)enemies[i].attr)->speed);
 				Coord goal = makeStep(enemies[i].roamDir, ((EnemyAttributes*)enemies[i].attr)->speed*10);
-				enemies[i].goal = deriveCoord(enemies[i].coord, goal.x, goal.y);
+				enemies[i].goal = deriveCoord(enemies[i].pos->origin, goal.x, goal.y);
 			}
 			//Otherwise - home towards player.
 			else {
-				step = getStep(enemies[i].coord, plr->pos, ((EnemyAttributes*)enemies[i].attr)->speed);
-				enemies[i].goal = plr->pos;
+				step = getStep(enemies[i].pos->origin, plr->pos->origin, ((EnemyAttributes*)enemies[i].attr)->speed);
+				enemies[i].goal = plr->pos->origin;
 			}
-			heading = deriveCoord(enemies[i].coord, step.x, step.y);
+			heading = deriveCoord(enemies[i].pos->origin, step.x, step.y);
 
 			// if you would collide with player, respawn
-			if(rectInBounds(makeSquareBounds(heading,((EnemyAttributes*)enemies[i].attr)->size), makeSquareBounds(plr->pos, PC_BOUNDS))) {
+			if(rectInBounds(makeSquareBounds(heading,((EnemyAttributes*)enemies[i].attr)->size), makeSquareBounds(plr->pos->origin, PC_BOUNDS))) {
 				plr->health -= 1;
 				// if(plr->health == 0) quit();
 				spawnEnemy(i);
@@ -53,7 +53,7 @@ void enemyGameFrame(void) {
 				if(npcInBounds(&plr->squad->members[j],makeSquareBounds(heading,((EnemyAttributes*)enemies[i].attr)->size))) {
 					skipMove = true;
 					if(chance(25)) push(&plr->squad->members[j],
-															getAngle(enemies[i].coord,plr->squad->members[j].coord),
+															getAngle(enemies[i].pos->origin,plr->squad->members[j].pos->origin),
 															((EnemyAttributes*)enemies[i].attr)->power);
 					break;
 				}
@@ -73,14 +73,14 @@ void enemyGameFrame(void) {
 			}
 			if(skipMove) continue;
 
-			enemies[i].coord = heading;
+			enemies[i].pos->origin = heading;
 		}
 	}
 
 void enemyAnimateFrame(void) {
 	//Animate the enemies
 	for(int i=0; i < MAX_ENEMY; i++) {
-		if(enemies[i].coord.x == 0) continue;
+		if(enemies[i].pos->origin.x == 0) continue;
 
 		//Increment animations.
 		if(enemies[i].animInc < 4) {
@@ -94,14 +94,14 @@ void enemyAnimateFrame(void) {
 void enemyRenderFrame(){
 	//Draw the enemies with the right animation frame.
 	for(int i=0; i<MAX_ENEMY; i++) {
-		if(enemies[i].coord.x == 0) continue;
+		if(enemies[i].pos->origin.x == 0) continue;
 
 		SDL_RendererFlip flip = SDL_FLIP_NONE;
 		bool isUp = false;
 		bool isDown = false;
 
-		isUp   = enemies[i].coord.y-enemies[i].goal.y > abs(enemies[i].coord.x-enemies[i].goal.x);
-		isDown = enemies[i].goal.y-enemies[i].coord.y > abs(enemies[i].coord.x-enemies[i].goal.x);
+		isUp   = enemies[i].pos->origin.y-enemies[i].goal.y > abs(enemies[i].pos->origin.x-enemies[i].goal.x);
+		isDown = enemies[i].goal.y-enemies[i].pos->origin.y > abs(enemies[i].pos->origin.x-enemies[i].goal.x);
 
 		char frameFile[28];
 
@@ -112,40 +112,44 @@ void enemyRenderFrame(){
 			strcpy(frameFile, "dracula-walk-down-%02d.png");
 		} else{
 			strcpy(frameFile, "dracula-walk-%02d.png");
-			flip = enemies[i].coord.x > enemies[i].goal.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
+			flip = enemies[i].pos->origin.x > enemies[i].goal.x ? SDL_FLIP_HORIZONTAL : SDL_FLIP_NONE;
 		}
 
 		sprintf(frameFile, frameFile, enemies[i].animInc);
 		Sprite *sprite = makeFlippedSprite__leaks(frameFile, flip);
 		assert(sprite);
-		drawSprite(sprite, enemies[i].coord);
+		drawSprite(sprite, enemies[i].pos->origin);
 		free(sprite);
 
 		if(showHomingLines){
 			drawLine(128,0,0,
-				makeCoord(enemies[i].coord.x-((EnemyAttributes*)enemies[i].attr)->size/2, enemies[i].coord.y-((EnemyAttributes*)enemies[i].attr)->size/2),
-				makeCoord(enemies[i].coord.x+((EnemyAttributes*)enemies[i].attr)->size/2, enemies[i].coord.y+((EnemyAttributes*)enemies[i].attr)->size/2));
+				makeCoord(enemies[i].pos->origin.x-((EnemyAttributes*)enemies[i].attr)->size/2, enemies[i].pos->origin.y-((EnemyAttributes*)enemies[i].attr)->size/2),
+				makeCoord(enemies[i].pos->origin.x+((EnemyAttributes*)enemies[i].attr)->size/2, enemies[i].pos->origin.y+((EnemyAttributes*)enemies[i].attr)->size/2));
 			drawLine(128,0,0,
-					makeCoord(enemies[i].coord.x+((EnemyAttributes*)enemies[i].attr)->size/2, enemies[i].coord.y-((EnemyAttributes*)enemies[i].attr)->size/2),
-					makeCoord(enemies[i].coord.x-((EnemyAttributes*)enemies[i].attr)->size/2, enemies[i].coord.y+((EnemyAttributes*)enemies[i].attr)->size/2));
+					makeCoord(enemies[i].pos->origin.x+((EnemyAttributes*)enemies[i].attr)->size/2, enemies[i].pos->origin.y-((EnemyAttributes*)enemies[i].attr)->size/2),
+					makeCoord(enemies[i].pos->origin.x-((EnemyAttributes*)enemies[i].attr)->size/2, enemies[i].pos->origin.y+((EnemyAttributes*)enemies[i].attr)->size/2));
 		}
 	}
 }
 
 void spawnEnemy(int i) {
 	if(i >= MAX_ENEMY) return;
+	if((EnemyAttributes*)enemies[i].attr) free((EnemyAttributes*)enemies[i].attr);
+	if(enemies[i].pos) free(enemies[i].pos);
 
 	Npc *e = makeNpc__leaks();
 	assert(e);
 	e->type = NPC_ENEMY;
+
 	e->attr = malloc(sizeof(EnemyAttributes));
 	assert(e->attr);
 	((EnemyAttributes*)e->attr)->size = 10;
 	((EnemyAttributes*)e->attr)->power = 0;
 	((EnemyAttributes*)e->attr)->speed = 1;
-	e->coord = makeSafeCoord(scene,((EnemyAttributes*)e->attr)->size);
 
-	if(enemies[i].attr != NULL) free((EnemyAttributes*)enemies[i].attr);
+	assert(e->pos);
+	e->pos->origin = makeSafeCoord(scene,((EnemyAttributes*)e->attr)->size);
+
 	enemies[i] = *e;
 }
 
