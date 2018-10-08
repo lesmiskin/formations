@@ -109,13 +109,13 @@ int main()  {
     if(isDue(clock(),lastRenderFrameTime, RENDER_HZ)) {
       //Fps measure
       if(timer(&lastFpsMeasure,1000)) fps = 1000.0 / ticsToMilliseconds(clock() - lastRenderFrameTime);
+      lastRenderFrameTime = clock();
       sceneRenderFrame(scene);
       playerRenderFrame(plr);
       squadRenderFrame(plr->squad);
       enemyRenderFrame();
       hudRenderFrame();
       updateCanvas();
-      lastRenderFrameTime = clock();
     }
   }
   return 0;

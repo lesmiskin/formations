@@ -6,8 +6,8 @@
 
 extern int fps;
 extern void initHud();
-extern void writeText(int amount, Coord pos);
-extern void writeFont(char *text, Coord pos);
+extern void writeText(int, Coord, bool);
+extern void writeFont(char*, Coord, bool);
 extern void hudRenderFrame();
 extern void hudGameFrame();
 extern void hudAnimFrame();
