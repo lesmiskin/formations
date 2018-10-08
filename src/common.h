@@ -39,6 +39,7 @@ extern Coord makeCoord(double x, double y);
 extern Coord mergeCoord(Coord original, Coord derive);
 extern Coord deriveCoord(Coord original, double xOffset, double yOffset);
 extern Coord zeroCoord();
+extern long ticsToMilliseconds(long tics);
 extern bool timer(long *lastTime, double hertz);
 extern bool isDue(long now, long lastTime, double hertz);
 extern void fatalError(const char *title, const char *message);

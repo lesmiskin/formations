@@ -1,6 +1,7 @@
 #include <time.h>
 #include <stdbool.h>
 #include <assert.h>
+#include <limits.h>
 #include "common.h"
 #include "input.h"
 #include "assets.h"
@@ -13,7 +14,7 @@
 
 static const char *GAME_TITLE = "Formations Alpha 0.1";
 const int ANIMATION_HZ = 1000 / 12;
-const int RENDER_HZ = 1000 / 12;
+const int RENDER_HZ = 1000 / 60;
 const int GAME_HZ = 1000 / 30;
 
 bool running = true;
@@ -79,8 +80,9 @@ int main()  {
   changeMode(MODE_GAME);
 
   long lastRenderFrameTime = clock();
-  long lastGameFrameTime = lastRenderFrameTime;
-  long lastAnimFrameTime = lastRenderFrameTime;
+  long lastGameFrameTime = clock();
+  long lastAnimFrameTime = clock();
+  long lastFpsMeasure = clock();
 
   //Main game loop (realtime)
   while(running){
@@ -104,13 +106,16 @@ int main()  {
     }
 
     //Renderer frame
-    if(timer(&lastRenderFrameTime, RENDER_HZ)) {
+    if(isDue(clock(),lastRenderFrameTime, RENDER_HZ)) {
+      //Fps measure
+      if(timer(&lastFpsMeasure,1000)) fps = 1000.0 / ticsToMilliseconds(clock() - lastRenderFrameTime);
       sceneRenderFrame(scene);
       playerRenderFrame(plr);
       squadRenderFrame(plr->squad);
       enemyRenderFrame();
       hudRenderFrame();
       updateCanvas();
+      lastRenderFrameTime = clock();
     }
   }
   return 0;

@@ -1,4 +1,4 @@
-
+#include <assert.h>
 #include "hud.h"
 #include "renderer.h"
 #include "time.h"
@@ -9,13 +9,15 @@
 static Sprite letters[10];
 static const int LETTER_WIDTH = 4;
 
+int fps = 0;
+
 void initHud(void) {
 	//Pre-load font sprites.
 	for(int i=0; i < 10; i++) {
 		char textureName[50];
 		sprintf(textureName, "font-%02d.png", i);
 		Sprite *sprite = makeSimpleSprite__leaks(textureName);
-		if(!sprite) printf("[%s:%d] leaky function failed to allocate",__FILE__,__LINE__);
+		assert(sprite);
 		letters[i] = *sprite;
 		free(sprite);
 	}
@@ -73,6 +75,7 @@ void hudGameFrame(void) {
 }
 
 void hudRenderFrame(void) {
-	// writeText(plr->health, makeCoord(50, 10));
+	if(showHomingLines) writeText(fps, makeCoord(300, 10));
+	writeText(plr->health, makeCoord(50, 10));
 	// writeFont("health", makeCoord(10, 10));
 }
